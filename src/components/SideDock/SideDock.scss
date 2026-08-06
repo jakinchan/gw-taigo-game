@@ -1,0 +1,33 @@
+.side-dock {
+  position: fixed;
+  right: 0;
+  // 画面中央よりやや下。tabBar と被らない位置。
+  top: 55%;
+  transform: translateY(-50%);
+  z-index: 60;
+  @include flex(center, flex-end, column);
+  gap: $space-xs;
+
+  &__item {
+    @include flex(center, center);
+    width: 46px;
+    height: 46px;
+    padding: 0 4px;
+    // 右端に貼り付くので左側だけ丸める
+    border-radius: $radius-lg 0 0 $radius-lg;
+    background: $color-surface;
+    box-shadow: $shadow-side;
+
+    &--hover {
+      background: $color-primary-bg;
+    }
+  }
+
+  &__label {
+    font-size: $font-tiny;
+    line-height: 1.2;
+    color: $color-primary;
+    text-align: center;
+    font-weight: $font-weight-medium;
+  }
+}

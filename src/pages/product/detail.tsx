@@ -247,6 +247,36 @@ export default function ProductDetail() {
           <View className='detail__block'>
             <Section title={t('product.specification')} body={tx(product.description)} />
             <Section title={t('product.ingredients')} body={tx(product.ingredients)} />
+
+            {/* 栄養成分表は法定表示なので、本文とは別に表形式で見せる */}
+            {product.nutrition && product.nutrition.length > 0 && (
+              <View className='detail__section'>
+                <Text className='detail__section-title'>{t('product.nutrition')}</Text>
+
+                <View className='detail__nutrition'>
+                  <View className='detail__nutrition-row detail__nutrition-row--head'>
+                    <Text className='detail__nutrition-name'>{t('product.nutritionItem')}</Text>
+                    <Text className='detail__nutrition-amount'>
+                      {t('product.nutritionAmount')}
+                    </Text>
+                    <Text className='detail__nutrition-nrv'>{t('product.nutritionNrv')}</Text>
+                  </View>
+
+                  {product.nutrition.map((item, i) => (
+                    <View key={i} className='detail__nutrition-row'>
+                      <Text className='detail__nutrition-name'>{tx(item.name)}</Text>
+                      <Text className='detail__nutrition-amount'>{item.amount}</Text>
+                      <Text className='detail__nutrition-nrv'>
+                        {item.nrvPercent == null ? '—' : `${item.nrvPercent}%`}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                <Text className='detail__nutrition-note'>{t('product.nutritionNote')}</Text>
+              </View>
+            )}
+
             <Section title={t('product.benefits')} body={tx(product.benefits)} />
             <Section title={t('product.usage')} body={tx(product.usage)} />
 
@@ -317,7 +347,7 @@ export default function ProductDetail() {
         <View
           className='detail__footer-icon'
           hoverClass='detail__footer-icon--hover'
-          onClick={() => Taro.switchTab({ url: '/pages/cart/cart' })}
+          onClick={() => Taro.navigateTo({ url: '/pages/cart/cart' })}
         >
           <Text className='detail__footer-icon-glyph'>🛒</Text>
           <Text className='detail__footer-icon-label'>{t('tabBar.cart')}</Text>

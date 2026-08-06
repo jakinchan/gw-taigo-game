@@ -1,44 +1,154 @@
-.product-card {
-  @include card;
+.pcard {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: $color-surface;
+  border-radius: $radius-md;
+  // リボンをカード角で切り落とすために必要
+  overflow: hidden;
 
   &--hover {
     transform: scale(0.985);
     transition: transform 0.12s ease;
   }
 
-  &.is-sold-out {
-    .product-card__image {
-      opacity: 0.55;
+  &.is-sold-out .pcard__thumb {
+    opacity: 0.45;
+  }
+
+  // ---------- 斜めリボン ----------
+  &__ribbon {
+    @include corner-ribbon;
+    z-index: 2;
+
+    &--accent {
+      background: linear-gradient(135deg, #ffa24a 0%, #ff6b1a 100%);
+    }
+
+    &--dark {
+      background: linear-gradient(135deg, #5a6478 0%, #2f3746 100%);
     }
   }
 
-  // ---------- media ----------
-  &__media {
-    position: relative;
-    width: 100%;
-    background: $color-divider;
+  // ---------- 本文 ----------
+  &__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: $space-sm $space-xs $space-xs;
   }
 
-  &__image {
-    width: 100%;
-    height: 100%;
-  }
-
-  &__badge {
-    position: absolute;
-    top: $space-xs;
-    left: $space-xs;
-    padding: 2px 6px;
-    border-radius: $radius-sm;
-    background: $color-primary;
-    color: $color-text-inverse;
-    font-size: 10px;
+  &__name {
+    font-size: $font-sub;
     font-weight: $font-weight-heavy;
-    letter-spacing: 0.5px;
+    line-height: 1.25;
+    color: $color-text;
+    // リボンと重ならないよう右に逃がす
+    padding-right: 26px;
+    @include ellipsis-lines(2);
+  }
 
-    &--sale {
-      background: $color-accent;
+  &__spec {
+    align-self: flex-start;
+    margin-top: $space-xxs;
+    padding: 1px 4px;
+    border: 1px solid $color-border;
+    border-radius: 2px;
+    font-size: 9px;
+    line-height: 1.4;
+    color: $color-text-secondary;
+    max-width: 100%;
+    @include ellipsis;
+  }
+
+  &__bottom {
+    @include flex(space-between, flex-end);
+    flex: 1;
+    margin-top: $space-xs;
+  }
+
+  &__price-col {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__discount-label {
+    display: block;
+    font-size: 9px;
+    color: $color-text-tertiary;
+    line-height: 1.2;
+  }
+
+  &__price {
+    @include flex(flex-start, baseline);
+    font-family: $font-family-number;
+    color: $color-primary;
+  }
+
+  &__price-symbol {
+    font-size: $font-caption;
+    font-weight: $font-weight-heavy;
+  }
+
+  &__price-int {
+    font-size: 21px;
+    font-weight: $font-weight-heavy;
+    line-height: 1.1;
+  }
+
+  &__price-dec {
+    font-size: $font-caption;
+    font-weight: $font-weight-heavy;
+  }
+
+  &__price-unit {
+    margin-left: 1px;
+    font-size: 9px;
+    color: $color-primary;
+  }
+
+  &__jpy {
+    display: block;
+    font-size: 9px;
+    color: $color-text-tertiary;
+  }
+
+  &__market-label {
+    display: block;
+    font-size: 9px;
+    color: $color-text-muted;
+    line-height: 1.3;
+  }
+
+  &__market-value {
+    display: block;
+    font-size: 9px;
+    color: $color-text-muted;
+    text-decoration: line-through;
+    line-height: 1.3;
+    @include ellipsis;
+  }
+
+  &__thumb {
+    width: 34px;
+    height: 52px;
+    flex-shrink: 0;
+    margin-left: $space-xxs;
+  }
+
+  // ---------- 下端タグバー ----------
+  &__footer {
+    padding: 3px $space-xs;
+    background: $color-primary-bg;
+    color: $color-primary;
+    font-size: 9px;
+    text-align: center;
+    @include ellipsis;
+
+    &--muted {
+      background: $color-divider;
+      color: $color-text-secondary;
     }
   }
 
@@ -47,118 +157,46 @@
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 72px;
-    height: 72px;
+    width: 60px;
+    height: 60px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: rgba(31, 35, 32, 0.6);
+    background: rgba(26, 26, 26, 0.6);
     color: $color-text-inverse;
     font-size: $font-caption;
   }
 
-  // ---------- body ----------
-  &__body {
-    padding: $space-sm;
-  }
-
-  &__name {
-    display: block;
-    font-size: $font-sub;
-    font-weight: $font-weight-bold;
-    color: $color-text;
-    line-height: 1.35;
-    @include ellipsis-lines(2);
-  }
-
-  &__subtitle {
-    display: block;
-    margin-top: $space-xxs;
-    font-size: $font-caption;
-    color: $color-text-tertiary;
-    @include ellipsis;
-  }
-
-  &__tags {
-    @include flex(flex-start, center);
-    margin-top: $space-xs;
-    gap: $space-xxs;
-  }
-
-  &__tag {
-    padding: 1px 5px;
-    border-radius: $radius-sm;
-    background: $color-primary-bg;
-    color: $color-primary-dark;
-    font-size: 10px;
-    @include ellipsis;
-    max-width: 96px;
-  }
-
-  &__footer {
-    @include flex(space-between, flex-end);
-    margin-top: $space-xs;
-  }
-
-  &__sales {
-    font-size: $font-caption;
-    color: $color-text-tertiary;
-    white-space: nowrap;
-  }
-
-  &__add {
-    @include flex(center, center);
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: $color-primary;
-    // 視覚 28px / タップ 44px
-    @include expand-tap-area;
-
-    &--hover {
-      background: $color-primary-dark;
+  // ---------- バリアント ----------
+  // 2 カラムは幅に余裕があるので、文字とサムネイルを一回り大きく
+  &--grid2 {
+    .pcard__name {
+      font-size: $font-body - 1px;
     }
-  }
 
-  &__add-icon {
-    color: $color-text-inverse;
-    font-size: $font-body;
-    line-height: 1;
-  }
+    .pcard__price-int {
+      font-size: 23px;
+    }
 
-  // ---------- variants ----------
-  &--grid {
-    .product-card__media {
-      height: 168px;
+    .pcard__thumb {
+      width: 44px;
+      height: 62px;
+    }
+
+    .pcard__body {
+      padding: $space-sm;
     }
   }
 
   &--compact {
-    width: 132px;
+    width: 120px;
     flex-shrink: 0;
 
-    .product-card__media {
-      height: 132px;
+    .pcard__name {
+      font-size: $font-caption;
     }
 
-    .product-card__body {
-      padding: $space-xs;
-    }
-  }
-
-  &--list {
-    @include flex(flex-start, stretch);
-
-    .product-card__media {
-      width: 110px;
-      height: 110px;
-      flex-shrink: 0;
-    }
-
-    .product-card__body {
-      flex: 1;
-      min-width: 0;
-      @include flex(space-between, stretch, column);
+    .pcard__price-int {
+      font-size: 18px;
     }
   }
 }

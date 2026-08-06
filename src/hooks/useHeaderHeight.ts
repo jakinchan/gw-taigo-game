@@ -2,11 +2,11 @@ import { useMemo } from 'react'
 import Taro from '@tarojs/taro'
 
 /**
- * カスタムヘッダー（components/Header）の実高さ。
+ * カスタムヘッダー（components/BrandHeader）の実高さ。
  *
- * Header は position: fixed なので、ページ側は同じ高さの
+ * BrandHeader は position: fixed なので、ページ側は同じ高さの
  * プレースホルダを置かないとコンテンツがヘッダーの下に潜る。
- * 計算式を Header と 2 箇所に散らさないよう、ここに集約する。
+ * 計算式を 2 箇所に散らさないよう、ここに集約する。
  */
 export function useHeaderHeight(options: { withSearch?: boolean } = {}): number {
   const { withSearch = true } = options

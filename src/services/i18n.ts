@@ -46,7 +46,8 @@ export const useI18nStore = create<I18nState>((set) => ({
  */
 export function syncTabBarText(locale: Locale): void {
   const t = resources[locale].tabBar
-  const labels = [t.home, t.category, t.cart, t.user]
+  // tabBar は 3 つ（首页 / 全部商品 / 我的）。順序は app.config.ts と揃える。
+  const labels = [t.home, t.allProducts, t.user]
   labels.forEach((text, index) => {
     Taro.setTabBarItem({ index, text }).catch(() => {
       // tabBar を持たないページから呼ばれた場合は無視してよい

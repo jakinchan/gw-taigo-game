@@ -10,6 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { Throttle } from '@nestjs/throttler'
 
 import { CurrentUser } from '../auth/current-user.decorator'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
@@ -17,6 +18,7 @@ import type { AuthUser } from '../auth/jwt.strategy'
 import { CouponsService } from '../coupons/coupons.service'
 import { UsersService } from './users.service'
 import { CreateAddressDto, UpdateAddressDto, UpdateProfileDto } from './dto/address.dto'
+import { RealNameDto } from './dto/real-name.dto'
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -38,6 +40,19 @@ export class UsersController {
   @ApiOperation({ summary: 'プロフィール更新' })
   updateProfile(@CurrentUser() user: AuthUser, @Body() dto: UpdateProfileDto) {
     return this.usersService.updateProfile(user.id, dto)
+  }
+
+  @Post('real-name')
+  @Throttle({ default: { ttl: 3600_000, limit: 5 } })
+  @ApiOperation({ summary: '実名認証の登録（越境EC の通関申告に必須）' })
+  verifyRealName(@CurrentUser() user: AuthUser, @Body() dto: RealNameDto) {
+    return this.usersService.verifyRealName(user.id, dto)
+  }
+
+  @Get('cross-border-quota')
+  @ApiOperation({ summary: '越境EC の年間購入枠の使用状況' })
+  quota(@CurrentUser() user: AuthUser) {
+    return this.usersService.getCrossBorderQuota(user.id)
   }
 
   @Get('addresses')

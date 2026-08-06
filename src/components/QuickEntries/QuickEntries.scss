@@ -1,0 +1,53 @@
+.quick-entries {
+  @include flex(space-between, stretch);
+  margin: $space-sm $page-padding 0;
+  padding: $space-sm 0;
+  background: $color-surface;
+  border-radius: $radius-lg;
+
+  &__item {
+    @include flex(center, center, column);
+    flex: 1;
+    position: relative;
+
+    // 項目の間に縦の区切り線を入れる（最後の 1 つを除く）
+    &:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 12%;
+      right: 0;
+      width: 1px;
+      height: 76%;
+      transform: scaleX(0.5);
+      background: $color-divider;
+    }
+
+    &--hover {
+      opacity: 0.6;
+    }
+  }
+
+  &__icon {
+    @include flex(center, center);
+    width: 34px;
+    height: 34px;
+    border: 1px solid $color-border;
+    border-radius: $radius-md;
+  }
+
+  &__icon-text {
+    font-size: $font-caption;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+    line-height: 1;
+  }
+
+  &__label {
+    margin-top: $space-xs;
+    font-size: $font-tiny;
+    color: $color-text-secondary;
+    text-align: center;
+    max-width: 100%;
+    @include ellipsis;
+  }
+}

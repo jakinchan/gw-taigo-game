@@ -1,0 +1,48 @@
+.consult {
+  @include flex(flex-start, center, column);
+  min-height: 100vh;
+  padding: $space-xxl $space-lg;
+  background: $color-surface;
+
+  &__heading {
+    margin-top: $space-xl;
+    font-size: 26px;
+    font-weight: $font-weight-heavy;
+    line-height: 1.4;
+    color: $color-text;
+    text-align: center;
+    // 文言に改行を含めているので、そのまま反映させる
+    white-space: pre-line;
+  }
+
+  &__qr {
+    width: 200px;
+    height: 200px;
+    margin-top: $space-xxl;
+    background: $color-divider;
+  }
+
+  &__fingerprint {
+    margin-top: $space-lg;
+    font-size: 40px;
+    opacity: 0.25;
+  }
+
+  &__tip {
+    margin-top: $space-lg;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    text-align: center;
+  }
+
+  &__save {
+    @include button-outline;
+    margin-top: $space-xxl;
+    min-width: 180px;
+    padding: 0 $space-xl;
+
+    &--hover {
+      opacity: 0.7;
+    }
+  }
+}

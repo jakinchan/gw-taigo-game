@@ -1,4 +1,3 @@
-import Taro from '@tarojs/taro'
 import { create } from 'zustand'
 import type { CartItem, Product } from '@/types'
 import { getStorage, setStorage } from '@/utils/storage'
@@ -22,15 +21,12 @@ interface CartState {
   removeMany: (productIds: string[]) => void
 }
 
+/**
+ * カートは tabBar に無い（実機の tabBar は 首页 / 全部商品 / 我的 の 3 つ）ため、
+ * バッジ更新は行わない。件数は商品詳細のカートアイコン側で表示する。
+ */
 function persist(items: CartItem[]): CartItem[] {
   setStorage('cart', items)
-  // タブバーのバッジを商品点数（種類数ではなく合計個数）で更新
-  const count = items.reduce((sum, item) => sum + item.quantity, 0)
-  if (count > 0) {
-    Taro.setTabBarBadge({ index: 2, text: count > 99 ? '99+' : String(count) }).catch(() => {})
-  } else {
-    Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
-  }
   return items
 }
 

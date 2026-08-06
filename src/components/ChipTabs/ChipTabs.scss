@@ -1,0 +1,33 @@
+.chip-tabs {
+  width: 100%;
+  white-space: nowrap;
+
+  &__inner {
+    display: inline-flex;
+    align-items: center;
+    gap: $space-xs;
+    padding: $space-sm $page-padding;
+  }
+
+  &__chip {
+    @include flex(center, center);
+    flex-shrink: 0;
+    height: 30px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    background: $color-surface;
+    color: $color-text-secondary;
+    font-size: $font-caption;
+    white-space: nowrap;
+
+    &.is-active {
+      background: $color-primary;
+      color: $color-text-inverse;
+      font-weight: $font-weight-bold;
+    }
+
+    &--hover {
+      opacity: 0.7;
+    }
+  }
+}

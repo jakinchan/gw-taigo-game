@@ -1,0 +1,181 @@
+.points {
+  min-height: 100vh;
+  padding-bottom: $space-xxl;
+  background: $color-bg;
+
+  // ---------- 残高 ----------
+  &__balance {
+    @include flex(center, center, column);
+    padding: $space-lg $page-padding;
+    background: $color-primary-grad;
+  }
+
+  &__balance-label {
+    font-size: $font-caption;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  &__balance-value {
+    margin-top: $space-xxs;
+    font-family: $font-family-number;
+    font-size: 34px;
+    font-weight: $font-weight-heavy;
+    color: $color-text-inverse;
+    line-height: 1.1;
+  }
+
+  // ---------- 交換グリッド ----------
+  &__grid {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 ($page-padding - $space-xxs);
+  }
+
+  &__item {
+    @include flex(center, center, column);
+    width: calc(50% - #{$space-xs});
+    margin: $space-xxs;
+    padding: $space-md $space-sm;
+    background: $color-surface;
+    border-radius: $radius-lg;
+  }
+
+  &__item-value {
+    @include flex(center, center, column);
+  }
+
+  &__item-amount {
+    font-family: $font-family-number;
+    font-size: 26px;
+    font-weight: $font-weight-heavy;
+    color: $color-primary;
+    line-height: 1.1;
+  }
+
+  &__item-unit {
+    margin-top: 2px;
+    font-size: $font-tiny;
+    color: $color-text-secondary;
+  }
+
+  &__item-cost {
+    margin-top: $space-xs;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  &__item-btn {
+    @include flex(center, center);
+    width: 100%;
+    height: 32px;
+    margin-top: $space-sm;
+    border-radius: $radius-pill;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: $font-button;
+    font-weight: $font-weight-bold;
+
+    &.is-disabled {
+      background: $color-border;
+      color: $color-text-tertiary;
+    }
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+
+  // ---------- クーポン一覧 ----------
+  &__coupons {
+    padding: 0 $page-padding;
+  }
+
+  &__coupon {
+    @include flex(flex-start, stretch);
+    margin-bottom: $space-xs;
+    border-radius: $radius-md;
+    background: $color-surface;
+    overflow: hidden;
+
+    &.is-used {
+      opacity: 0.45;
+    }
+  }
+
+  &__coupon-left {
+    @include flex(center, center);
+    width: 96px;
+    flex-shrink: 0;
+    padding: $space-md 0;
+    background: $color-primary;
+  }
+
+  &__coupon-value {
+    font-family: $font-family-number;
+    font-size: $font-body + 2px;
+    font-weight: $font-weight-heavy;
+    color: $color-text-inverse;
+  }
+
+  &__coupon-body {
+    @include flex(center, flex-start, column);
+    flex: 1;
+    min-width: 0;
+    padding: $space-sm;
+  }
+
+  &__coupon-title {
+    font-size: $font-sub;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+    max-width: 100%;
+    @include ellipsis;
+  }
+
+  &__coupon-cond {
+    margin-top: 2px;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- 签到 ----------
+  &__checkin {
+    margin: 0 $page-padding;
+    padding: $space-md;
+    background: $color-surface;
+    border-radius: $radius-lg;
+  }
+
+  &__checkin-days {
+    @include flex(space-between, center);
+  }
+
+  &__day {
+    @include flex(center, center, column);
+    flex: 1;
+    opacity: 0.45;
+
+    &.is-done {
+      opacity: 1;
+    }
+  }
+
+  &__day-icon {
+    font-size: 22px;
+  }
+
+  &__day-label {
+    margin-top: 2px;
+    font-size: $font-tiny;
+    color: $color-text-secondary;
+  }
+
+  &__checkin-btn {
+    @include button-primary;
+    margin-top: $space-lg;
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+}

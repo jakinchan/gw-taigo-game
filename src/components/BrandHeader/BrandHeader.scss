@@ -1,0 +1,92 @@
+.brand-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: $color-surface;
+
+  // ---------- ブランド行 ----------
+  &__row {
+    @include flex(center, center);
+    padding: 0 $page-padding;
+  }
+
+  &__logo {
+    width: 22px;
+    height: 22px;
+    margin-right: $space-xxs;
+  }
+
+  &__name {
+    font-size: $font-body + 2px;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+    letter-spacing: 0.5px;
+  }
+
+  &__reg {
+    margin-left: 2px;
+    font-size: 9px;
+    color: $color-text-secondary;
+    align-self: flex-start;
+    margin-top: 6px;
+  }
+
+  // ---------- 検索行 ----------
+  &__search-row {
+    @include flex(space-between, center);
+    padding: $space-xxs $page-padding $space-xs;
+    gap: $space-xs;
+  }
+
+  &__search {
+    @include flex(flex-start, center);
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 3px 0 $space-sm;
+    border: 1px solid $color-border;
+    border-radius: $radius-pill;
+    background: $color-surface;
+  }
+
+  &__search-icon {
+    font-size: $font-caption;
+    opacity: 0.5;
+  }
+
+  &__search-input {
+    flex: 1;
+    min-width: 0;
+    height: 34px;
+    margin-left: $space-xs;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__search-placeholder {
+    flex: 1;
+    min-width: 0;
+    margin-left: $space-xs;
+    font-size: $font-sub;
+    color: $color-text-tertiary;
+  }
+
+  // 検索バーの内側右端に収まる青いボタン
+  &__search-btn {
+    @include flex(center, center);
+    flex-shrink: 0;
+    height: 28px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: $font-caption;
+    font-weight: $font-weight-bold;
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+}

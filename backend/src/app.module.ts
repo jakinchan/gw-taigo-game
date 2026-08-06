@@ -5,6 +5,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
 
 import { PrismaModule } from './common/prisma/prisma.module'
+import { CryptoModule } from './common/crypto/crypto.module'
+import { CustomsModule } from './customs/customs.module'
 import { AuthModule } from './auth/auth.module'
 import { ProductsModule } from './products/products.module'
 import { OrdersModule } from './orders/orders.module'
@@ -26,6 +28,8 @@ import { CouponsModule } from './coupons/coupons.module'
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
 
     PrismaModule,
+    CryptoModule,
+    CustomsModule,
     AuthModule,
     ProductsModule,
     OrdersModule,

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { View, Text, Image, Input } from '@tarojs/components'
-import Taro, { useDidShow } from '@tarojs/taro'
+import Taro from '@tarojs/taro'
 import type { Coupon } from '@/types'
 import { userApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
@@ -46,16 +46,6 @@ export default function Cart() {
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null)
   const [applying, setApplying] = useState(false)
-
-  // 商品詳細で在庫が変わっている可能性があるため、表示のたびにバッジを整える
-  useDidShow(() => {
-    const count = items.reduce((sum, item) => sum + item.quantity, 0)
-    if (count > 0) {
-      Taro.setTabBarBadge({ index: 2, text: count > 99 ? '99+' : String(count) }).catch(() => {})
-    } else {
-      Taro.removeTabBarBadge({ index: 2 }).catch(() => {})
-    }
-  })
 
   const discount = coupon?.discountCny ?? 0
   const total = Math.max(subtotal - discount, 0)

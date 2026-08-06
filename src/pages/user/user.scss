@@ -1,98 +1,138 @@
-.user {
+.mine {
   min-height: 100vh;
+  padding-bottom: $space-xxl;
   background: $color-bg;
 
-  // ---------- ヒーロー ----------
-  &__hero {
-    padding: 0 $page-padding $space-xxl;
-    background: $color-primary-grad;
-    // 下端を丸めて、下のカードが乗っているように見せる
-    border-radius: 0 0 $radius-lg $radius-lg;
+  // ---------- ブランド行 ----------
+  &__brand {
+    @include flex(center, center);
+    padding-bottom: $space-md;
+    background: $color-surface;
   }
 
-  &__hero-top {
-    @include flex(flex-end, center);
-    // カプセルボタンと重ならない高さに収める
-    height: 32px;
+  &__brand-logo {
+    width: 22px;
+    height: 22px;
+    margin-right: $space-xxs;
   }
 
+  &__brand-name {
+    font-size: $font-body + 2px;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__brand-reg {
+    margin-left: 2px;
+    margin-top: 6px;
+    align-self: flex-start;
+    font-size: 9px;
+    color: $color-text-secondary;
+  }
+
+  // ---------- プロフィール ----------
   &__profile {
     @include flex(flex-start, center);
-    margin-top: $space-md;
+    padding: 0 $page-padding $space-md;
+    background: $color-surface;
   }
 
   &__avatar {
-    width: 60px;
-    height: 60px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.7);
-    background: $color-surface;
+    background: $color-divider;
     flex-shrink: 0;
-  }
-
-  &__profile-body {
-    flex: 1;
-    min-width: 0;
-    margin-left: $space-sm;
   }
 
   &__nickname {
-    display: block;
-    font-size: $font-title;
-    font-weight: $font-weight-heavy;
-    color: $color-text-inverse;
+    margin-left: $space-sm;
+    font-size: $font-body;
+    font-weight: $font-weight-bold;
+    color: $color-text;
     @include ellipsis;
   }
 
-  &__badges {
-    @include flex(flex-start, center);
-    margin-top: $space-xxs;
-    gap: $space-xs;
+  &__login {
+    margin-left: $space-sm;
+    padding: 0;
+    font-size: $font-sub;
+    color: $color-text-secondary;
+    text-align: left;
+    line-height: 1.4;
   }
 
-  &__level {
-    padding: 1px 8px;
-    border-radius: $radius-pill;
-    background: rgba(255, 255, 255, 0.25);
-    color: $color-text-inverse;
-    font-size: $font-caption;
-  }
-
-  &__points {
-    font-size: $font-caption;
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  &__login-tip {
-    display: block;
-    margin-top: $space-xxs;
-    font-size: $font-caption;
-    color: rgba(255, 255, 255, 0.85);
-  }
-
-  &__login-btn {
-    @include flex(center, center);
-    flex-shrink: 0;
-    height: 32px;
-    padding: 0 $space-md;
-    border-radius: $radius-pill;
+  // ---------- 3 指標 ----------
+  &__stats {
+    @include flex(space-around, center);
+    padding: 0 $page-padding $space-md;
     background: $color-surface;
-    color: $color-primary-dark;
-    font-size: $font-button;
-    font-weight: $font-weight-bold;
+  }
+
+  &__stat {
+    @include flex(center, center, column);
+    flex: 1;
+  }
+
+  &__stat-value {
+    font-family: $font-family-number;
+    font-size: $font-body + 1px;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__stat-label {
+    margin-top: 2px;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  // ---------- 券包バナー ----------
+  &__coupon-banner {
+    @include flex(space-between, center);
+    height: 84px;
+    margin: $space-sm $page-padding 0;
+    padding: 0 $space-md;
+    border-radius: $radius-lg;
+    background: $color-pink-grad;
+    overflow: hidden;
+
+    &--hover {
+      opacity: 0.9;
+    }
+  }
+
+  &__coupon-banner-title {
+    display: block;
+    font-size: 26px;
+    font-weight: $font-weight-heavy;
+    color: $color-text-inverse;
+    line-height: 1.1;
+  }
+
+  &__coupon-banner-btn {
+    @include flex(center, center);
+    align-self: flex-start;
+    margin-top: $space-xs;
+    height: 22px;
+    padding: 0 $space-sm;
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    border-radius: $radius-pill;
+    color: $color-text-inverse;
+    font-size: $font-tiny;
+  }
+
+  &__coupon-banner-coin {
+    font-size: 44px;
+    flex-shrink: 0;
   }
 
   // ---------- カード ----------
   &__card {
-    margin: (-$space-lg) $page-padding 0;
+    margin: $space-sm $page-padding 0;
     padding: $space-md;
     background: $color-surface;
-    border-radius: $radius-md;
-    box-shadow: $shadow-card;
-
-    & + & {
-      margin-top: $space-sm;
-    }
+    border-radius: $radius-lg;
 
     &--menu {
       padding: 0 $space-md;
@@ -117,14 +157,13 @@
 
   // ---------- 注文ステータス ----------
   &__orders {
-    @include flex(space-around, center);
+    @include flex(space-between, flex-start);
     margin-top: $space-md;
   }
 
-  &__order-entry {
+  &__order {
     @include flex(center, center, column);
     flex: 1;
-    padding: $space-xs 0;
 
     &--hover {
       opacity: 0.6;
@@ -132,21 +171,116 @@
   }
 
   &__order-icon {
-    font-size: 22px;
-    line-height: 1.2;
+    @include flex(center, center);
+    width: 26px;
+    height: 26px;
+    font-size: $font-body;
+    color: $color-text;
   }
 
   &__order-label {
     margin-top: $space-xxs;
-    font-size: $font-caption;
+    font-size: $font-tiny;
     color: $color-text-secondary;
+    text-align: center;
+  }
+
+  // ---------- 機能タイル ----------
+  &__tiles {
+    @include flex(space-between, stretch);
+    margin: $space-sm $page-padding 0;
+    gap: $space-sm;
+
+    &--single .mine__tile {
+      flex: 1;
+    }
+  }
+
+  &__tile {
+    @include flex(flex-start, center);
+    flex: 1;
+    height: 48px;
+    padding: 0 $space-md;
+    background: $color-surface;
+    border-radius: $radius-lg;
+
+    &--hover {
+      background: $color-divider;
+    }
+  }
+
+  &__tile-icon {
+    font-size: $font-sub;
+    margin-right: $space-xs;
+  }
+
+  &__tile-label {
+    font-size: $font-caption;
+    color: $color-text;
+    @include ellipsis;
+  }
+
+  // ---------- クーポン横スクロール ----------
+  &__coupons {
+    width: 100%;
+    margin-top: $space-sm;
+    white-space: nowrap;
+  }
+
+  &__coupons-inner {
+    display: inline-flex;
+    gap: $space-xs;
+    padding: 0 $page-padding;
+  }
+
+  &__coupon {
+    @include flex(center, center, column);
+    width: 82px;
+    padding: $space-xs $space-xxs;
+    border-radius: $radius-md;
+    background: linear-gradient(160deg, #fff4e0 0%, #ffe6c7 100%);
+    flex-shrink: 0;
+
+    &.is-used {
+      opacity: 0.45;
+    }
+  }
+
+  &__coupon-tag {
+    padding: 0 4px;
+    border-radius: 2px;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: 8px;
+  }
+
+  &__coupon-value {
+    margin-top: 2px;
+    font-family: $font-family-number;
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: #a8681a;
+  }
+
+  &__coupon-cond {
+    font-size: 8px;
+    color: #a8681a;
+    max-width: 100%;
+    @include ellipsis;
+  }
+
+  &__note {
+    display: block;
+    padding: $space-xs $page-padding 0;
+    font-size: $font-tiny;
+    color: $color-text-tertiary;
   }
 
   // ---------- メニュー ----------
   &__menu {
     @include flex(flex-start, center);
     // タップ領域を 44pt 以上確保する
-    min-height: 52px;
+    min-height: 50px;
     width: 100%;
     text-align: left;
     @include hairline(bottom, $color-divider);
@@ -161,8 +295,8 @@
   }
 
   &__menu-icon {
-    font-size: $font-body;
-    width: 28px;
+    font-size: $font-sub;
+    width: 26px;
   }
 
   &__menu-label {
@@ -177,8 +311,8 @@
   }
 
   &__disclaimer {
-    padding: $space-xl $page-padding;
-    font-size: $font-caption;
+    padding: $space-lg $page-padding;
+    font-size: $font-tiny;
     line-height: 1.6;
     color: $color-text-tertiary;
     text-align: center;

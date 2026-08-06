@@ -78,6 +78,23 @@
   }
 }
 
+/// 商品カード右上の斜めリボンバッジ（「本品TOP1」「大牌保健」など）
+/// 45 度回転させた帯をカード角に重ねる。overflow: hidden の親が前提。
+@mixin corner-ribbon($bg: $color-primary-grad) {
+  position: absolute;
+  top: 8px;
+  right: -22px;
+  width: 82px;
+  padding: 2px 0;
+  transform: rotate(45deg);
+  background: $bg;
+  color: $color-text-inverse;
+  font-size: 9px;
+  line-height: 1.3;
+  text-align: center;
+  letter-spacing: -0.2px;
+}
+
 /// メインボタン
 @mixin button-primary {
   @include flex(center, center);

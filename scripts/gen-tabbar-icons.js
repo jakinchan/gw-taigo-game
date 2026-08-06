@@ -17,8 +17,8 @@ const zlib = require('zlib')
 let SIZE = 81
 const SS = 3 // スーパーサンプリング倍率（アンチエイリアス用）
 
-const COLOR_INACTIVE = [0x9a, 0xa1, 0x9c]
-const COLOR_ACTIVE = [0x4c, 0xaf, 0x50]
+const COLOR_INACTIVE = [0x9a, 0xa0, 0xa6]
+const COLOR_ACTIVE = [0x2b, 0x5c, 0xe6]
 
 // ---------------------------------------------------------------
 // 図形プリミティブ: (x, y) がその図形の内側なら true を返す関数を作る
@@ -87,37 +87,47 @@ const subtract = (base, hole) => (x, y) => base(x, y) && !hole(x, y)
 // アイコン定義
 // ---------------------------------------------------------------
 
+/**
+ * tabBar は 3 つ（首页 / 全部商品 / 我的）。
+ * 実機の意匠に合わせ、塗りつぶしではなく線画（アウトライン）にする。
+ */
+const OUTLINE = 5 // 線幅
+
+/** 図形の輪郭だけを残す（内側を一回り小さい相似形で抜く） */
+const strokeRoundRect = (x0, y0, x1, y1, r, w = OUTLINE) =>
+  subtract(
+    roundRect(x0, y0, x1, y1, r),
+    roundRect(x0 + w, y0 + w, x1 - w, y1 - w, Math.max(r - w, 1)),
+  )
+
+const strokeCircle = (cx, cy, r, w = OUTLINE) =>
+  subtract(circle(cx, cy, r), circle(cx, cy, r - w))
+
 const icons = {
-  // 家: 屋根の三角 + 本体 - ドア
-  home: subtract(
-    union(triangle(40.5, 12, 10, 40, 71, 40), rect(20, 36, 61, 68)),
-    rect(33, 50, 48, 68),
+  // 家（アウトライン）: 屋根の線 2 本 + 壁の線 + 床
+  home: union(
+    line(12, 40, 40.5, 15, OUTLINE),
+    line(40.5, 15, 69, 40, OUTLINE),
+    line(19, 38, 19, 67, OUTLINE),
+    line(62, 38, 62, 67, OUTLINE),
+    line(19, 65, 62, 65, OUTLINE),
   ),
 
-  // 2x2 グリッド
+  // ショッピングバッグ（全部商品）: 本体の枠 + 取っ手のアーチ
   category: union(
-    roundRect(13, 13, 37, 37, 5),
-    roundRect(44, 13, 68, 37, 5),
-    roundRect(13, 44, 37, 68, 5),
-    roundRect(44, 44, 68, 68, 5),
+    strokeRoundRect(15, 28, 66, 68, 6),
+    // 取っ手は半円。下半分を切り落としてアーチにする。
+    subtract(strokeCircle(40.5, 28, 13), rect(0, 28, 81, 81)),
   ),
 
-  // ショッピングカート: 取っ手 + かご + 車輪
-  cart: union(
-    line(8, 15, 21, 15, 5),
-    line(21, 15, 26, 27, 5),
-    polygon([
-      [22, 27],
-      [72, 27],
-      [62, 55],
-      [30, 55],
-    ]),
-    circle(33, 65, 5.5),
-    circle(58, 65, 5.5),
+  // 笑顔（我的）: 輪郭 + 目 + 口
+  user: union(
+    strokeCircle(40.5, 40.5, 28),
+    circle(31, 34, 3.5),
+    circle(50, 34, 3.5),
+    // 口: 下半分だけ残した円弧
+    subtract(subtract(circle(40.5, 42, 15), circle(40.5, 42, 11)), rect(0, 0, 81, 48)),
   ),
-
-  // 人: 頭 + 肩
-  user: union(circle(40.5, 27, 13), subtract(ellipse(40.5, 72, 25, 27), rect(0, 70, 81, 81))),
 }
 
 // ---------------------------------------------------------------

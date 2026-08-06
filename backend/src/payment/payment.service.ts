@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config'
 import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
 
 import { PrismaService } from '../common/prisma/prisma.service'
+import { CustomsService } from '../customs/customs.service'
 import { WechatPayService, type DecryptedNotify } from './wechat-pay.service'
 
 @Injectable()
@@ -18,6 +19,7 @@ export class PaymentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly wechatPay: WechatPayService,
+    private readonly customs: CustomsService,
     private readonly config: ConfigService,
   ) {}
 
@@ -130,6 +132,14 @@ export class PaymentService {
           data: { salesCount: { increment: item.quantity } },
         })
       }
+
+      /**
+       * 通関申告のキューイング。
+       * 支付单と突合できるのは入金確定後なので、ここが最速のタイミング。
+       * レコード作成だけで外部通信はしない（トランザクションを長引かせない）。
+       * 実送信は CustomsService の 10 分ごとのジョブが拾う。
+       */
+      await this.customs.enqueue(tx, order.id)
     })
 
     this.logger.log(`order ${order.orderNo} paid (txn ${notify.transaction_id})`)

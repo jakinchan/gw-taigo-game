@@ -38,9 +38,14 @@ model User {
   points      Int         @default(0)
 
   /// 越境EC の通関申告には購入者本人の実名情報が必要
-  realNameVerified Boolean @default(false)
-  /// 身分証番号は暗号化して保存する（アプリ層で AES-256-GCM）
-  idCardEncrypted  String?
+  realNameVerified Boolean   @default(false)
+  realNameVerifiedAt DateTime?
+  /// 実名・身分証番号は AES-256-GCM で暗号化して保存する（CryptoService）
+  realNameEncrypted String?
+  idCardEncrypted   String?
+  /// 身分証番号の HMAC-SHA256。復号せずに同一人物を突合するために使う。
+  /// 越境EC の年間購入限度額は「個人」単位で集計するので、アカウント単位では足りない。
+  idCardHash        String?
 
   addresses Address[]
   orders    Order[]
@@ -51,6 +56,8 @@ model User {
   updatedAt DateTime @updatedAt
 
   @@index([unionId])
+  // 年間購入限度額の集計で User -> Order を引くために必要
+  @@index([idCardHash])
 }
 
 model Address {
@@ -126,8 +133,14 @@ model Product {
   originCountry  String  @default("JP")
   /// 越境EC（保税・直邮）対象か
   isCrossBorder  Boolean @default(true)
-  /// 越境EC 商品 HS コード（通関申告に必要）
+  /// 越境EC 商品 HS コード（通関申告と税率決定に必要）
   hsCode         String?
+  /// 通関申告に必要な単位・数量・重量
+  customsUnit    String  @default("011") // 011 = 个（海关単位コード）
+  /// 正味重量（グラム）
+  netWeightG     Int     @default(0)
+  /// 総重量（グラム）
+  grossWeightG   Int     @default(0)
 
   salesCount  Int   @default(0)
   rating      Float @default(5)
@@ -148,6 +161,34 @@ model Product {
   @@index([categoryId, isActive])
   @@index([isNew, isActive])
   @@index([isOnSale, isActive])
+  @@index([hsCode])
+}
+
+/// HS コード別の税率テーブル。
+/// 跨境电商综合税 = （関税 + 増値税 + 消費税）で、品目ごとに税率が異なる。
+/// 商品に税率を直接持たせると、税制改正のたびに全商品を更新することになる。
+model HsCodeTaxRate {
+  id     String @id @default(cuid())
+  hsCode String @unique
+  /// 品目名（管理画面表示用）
+  name   Json
+  /// 関税率。越境EC 小売輸入では原則 0%（暫定 0 税率）だが、
+  /// 限度額を超えた分は一般貿易扱いになり関税が発生する。
+  tariffRate Float @default(0)
+  /// 増値税率（一般 13%、一部食品 9%）
+  vatRate    Float @default(0.13)
+  /// 消費税率（健康食品は通常 0%、化粧品等は課税）
+  exciseRate Float @default(0)
+  /// 越境EC 綜合税の優遇係数。現行は法定納税額の 70%。
+  discount   Float @default(0.7)
+
+  effectiveFrom DateTime @default(now())
+  effectiveTo   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([hsCode, effectiveFrom])
 }
 
 /// 在庫ロット。FEFO（First Expired, First Out）で引き当てる。
@@ -285,8 +326,13 @@ model Order {
 
   couponCode String?
 
-  items    OrderItem[]
-  payments Payment[]
+  /// 通関申告に使った購入者（申告名義人）の身分証ハッシュ。
+  /// 年間購入限度額の集計キー。注文時点の値を固定保存する。
+  declarantIdHash String?
+
+  items       OrderItem[]
+  payments    Payment[]
+  declaration CustomsDeclaration?
 
   createdAt DateTime  @default(now())
   paidAt    DateTime?
@@ -294,6 +340,48 @@ model Order {
   updatedAt DateTime  @updatedAt
 
   @@index([userId, status, createdAt])
+  @@index([status, createdAt])
+  // 年間購入限度額の集計クエリがこのインデックスに乗る
+  @@index([declarantIdHash, paidAt])
+}
+
+enum DeclarationStatus {
+  pending    // 未送信
+  submitted  // 海关へ送信済み・審査中
+  accepted   // 受理
+  rejected   // 差し戻し
+  failed     // 送信エラー
+}
+
+/// 海关総署への申告（「三单对碰」の订单单）。
+/// 決済単・物流単は微信支付／物流会社が個別に送信し、海关側で突合される。
+model CustomsDeclaration {
+  id      String @id @default(cuid())
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  status DeclarationStatus @default(pending)
+
+  /// 电子口岸 企業備案番号
+  ebpCode String
+  ebcCode String
+  /// 海关が採番する受理番号
+  customsSerial String?
+  /// 申告に使った guid（再送時も同一 guid を使う＝冪等キー）
+  guid          String  @unique
+
+  /// 送信したリクエストと受信したレスポンス。障害調査と監査のために残す。
+  requestPayload  Json?
+  responsePayload Json?
+
+  /// 差し戻し理由
+  rejectReason String?
+  attempts     Int      @default(0)
+  lastAttemptAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([status, createdAt])
 }
 
@@ -313,6 +401,12 @@ model OrderItem {
   quantity Int
   /// 引き当てたロット番号（返品・リコール時の追跡に使う）
   batchNo  String?
+
+  /// 通関申告用のスナップショット。税制改正後に過去の注文を再計算させないため、
+  /// 適用した HS コードと税率を明細に固定保存する。
+  hsCode           String?
+  appliedTaxRate   Float   @default(0)
+  taxCny           Int     @default(0)
 
   @@index([orderId])
 }

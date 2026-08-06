@@ -208,6 +208,68 @@
     white-space: pre-wrap;
   }
 
+  // ---------- 栄養成分表 ----------
+  &__nutrition {
+    margin-top: $space-sm;
+    border: 1px solid $color-border;
+    border-radius: $radius-sm;
+    overflow: hidden;
+  }
+
+  &__nutrition-row {
+    @include flex(space-between, center);
+    padding: $space-xs $space-sm;
+    @include hairline(bottom, $color-divider);
+
+    &:last-child::after {
+      display: none;
+    }
+
+    &--head {
+      background: $color-primary-bg;
+
+      .detail__nutrition-name,
+      .detail__nutrition-amount,
+      .detail__nutrition-nrv {
+        font-weight: $font-weight-bold;
+        color: $color-primary-dark;
+        font-size: $font-caption;
+      }
+    }
+  }
+
+  &__nutrition-name {
+    flex: 1.4;
+    min-width: 0;
+    font-size: $font-caption;
+    color: $color-text;
+    @include ellipsis;
+  }
+
+  &__nutrition-amount {
+    flex: 1;
+    text-align: right;
+    font-family: $font-family-number;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  &__nutrition-nrv {
+    flex: 1;
+    text-align: right;
+    font-family: $font-family-number;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  &__nutrition-note {
+    display: block;
+    margin-top: $space-xs;
+    font-size: 10px;
+    line-height: 1.5;
+    color: $color-text-tertiary;
+  }
+
   &__disclaimer {
     margin: $space-md 0;
     padding: $space-sm;

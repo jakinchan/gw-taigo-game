@@ -1,0 +1,177 @@
+.lottery {
+  position: relative;
+  min-height: 100vh;
+  padding-bottom: $space-xxl;
+  background: linear-gradient(180deg, #ff7a2e 0%, #ff5a1a 100%);
+
+  &__rules {
+    @include flex(center, center);
+    position: absolute;
+    top: $space-xs;
+    right: 0;
+    height: 22px;
+    padding: 0 $space-sm;
+    border-radius: $radius-pill 0 0 $radius-pill;
+    background: rgba(0, 0, 0, 0.18);
+    color: $color-text-inverse;
+    font-size: $font-tiny;
+  }
+
+  // ---------- 抽選盤 ----------
+  &__board {
+    margin: 44px $space-md 0;
+    padding: $space-md;
+    border-radius: $radius-xl;
+    // 内側に一段濃い枠を敷いて、実機の立体的な見た目に寄せる
+    background: #b8300c;
+    box-shadow: inset 0 0 0 4px #ffd48a;
+  }
+
+  &__grid {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  &__cell {
+    @include flex(center, center, column);
+    width: 33.3333%;
+    height: 88px;
+    // マス同士の隙間は border で作る（背景の赤が線として見える）
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    box-sizing: border-box;
+  }
+
+  // 賞品マス
+  &__cell:not(&__cell--draw) {
+    background-color: #fff7e6;
+    border-radius: $radius-md;
+
+    &.is-active {
+      background-color: #ffe08a;
+      box-shadow: inset 0 0 0 2px #ff8a00;
+    }
+  }
+
+  &__cell-icon {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  &__cell-label {
+    margin-top: $space-xxs;
+    padding: 0 2px;
+    font-size: $font-tiny;
+    color: #8a4b12;
+    text-align: center;
+    line-height: 1.2;
+  }
+
+  // 中央の抽選ボタン
+  &__cell--draw {
+    background-color: #ff3d1a;
+    border-radius: $radius-md;
+
+    &.is-spinning {
+      opacity: 0.75;
+    }
+  }
+
+  &__cell--hover {
+    opacity: 0.85;
+  }
+
+  &__draw-text {
+    font-size: $font-title;
+    font-weight: $font-weight-heavy;
+    color: $color-text-inverse;
+    line-height: 1.1;
+  }
+
+  &__draw-sub {
+    margin-top: 2px;
+    font-size: $font-tiny;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  &__points {
+    display: block;
+    margin-top: $space-sm;
+    font-size: $font-tiny;
+    color: #ffd9b0;
+    text-align: center;
+  }
+
+  // ---------- タスク ----------
+  &__tasks {
+    margin: $space-md $space-md 0;
+    border-radius: $radius-lg;
+    background: $color-surface;
+    overflow: hidden;
+  }
+
+  &__tasks-head {
+    @include flex(center, center);
+    height: 36px;
+    background: #fff0e0;
+    color: #c2410c;
+    font-size: $font-caption;
+    font-weight: $font-weight-bold;
+  }
+
+  &__task {
+    @include flex(space-between, center);
+    padding: $space-sm $space-md;
+  }
+
+  &__task-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__task-name {
+    display: block;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__task-reward {
+    display: block;
+    margin-top: 2px;
+    font-size: $font-tiny;
+    color: $color-accent;
+  }
+
+  &__task-btn {
+    @include flex(center, center);
+    flex-shrink: 0;
+    height: 28px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    background: $color-accent;
+    color: $color-text-inverse;
+    font-size: $font-caption;
+    font-weight: $font-weight-bold;
+
+    &--hover {
+      opacity: 0.85;
+    }
+  }
+
+  // ---------- 我的奖品タブ ----------
+  &__prizes-tab {
+    @include flex(center, center);
+    position: fixed;
+    right: 0;
+    top: 30%;
+    width: 22px;
+    padding: $space-sm 4px;
+    border-radius: $radius-md 0 0 $radius-md;
+    background: rgba(0, 0, 0, 0.25);
+    color: $color-text-inverse;
+    font-size: $font-tiny;
+    line-height: 1.2;
+    // 縦書きにして細いタブに収める
+    writing-mode: vertical-rl;
+  }
+}

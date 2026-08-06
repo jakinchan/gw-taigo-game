@@ -30,9 +30,11 @@ export default function Banner({ items, interval = 4000, height = 160 }: Props) 
   const handleTap = (item: BannerItem) => {
     if (!item.link) return
     // tabBar ページへはリンクできないため switchTab と navigateTo を出し分ける
-    const isTabPage = ['/pages/index/index', '/pages/category/category', '/pages/cart/cart', '/pages/user/user'].some(
-      (p) => item.link!.startsWith(p),
-    )
+    const isTabPage = [
+      '/pages/index/index',
+      '/pages/products/products',
+      '/pages/user/user',
+    ].some((p) => item.link!.startsWith(p))
     if (isTabPage) {
       Taro.switchTab({ url: item.link })
     } else {

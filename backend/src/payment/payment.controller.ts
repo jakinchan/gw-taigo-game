@@ -19,6 +19,7 @@ import { CurrentUser } from '../auth/current-user.decorator'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import type { AuthUser } from '../auth/jwt.strategy'
 import { PaymentService } from './payment.service'
+import { PlatformCertificateService } from './platform-certificate.service'
 import { WechatPayService } from './wechat-pay.service'
 
 class CreatePaymentDto {
@@ -35,6 +36,7 @@ export class PaymentController {
   constructor(
     private readonly paymentService: PaymentService,
     private readonly wechatPay: WechatPayService,
+    private readonly certificates: PlatformCertificateService,
   ) {}
 
   @Post('wechat')
@@ -79,24 +81,34 @@ export class PaymentController {
     @Headers('wechatpay-timestamp') timestamp: string,
     @Headers('wechatpay-nonce') nonce: string,
     @Headers('wechatpay-signature') signature: string,
+    @Headers('wechatpay-serial') serial: string,
   ): Promise<{ code: string; message: string }> {
     const rawBody = request.body as Buffer
 
-    if (!timestamp || !nonce || !signature || !Buffer.isBuffer(rawBody)) {
+    if (!timestamp || !nonce || !signature || !serial || !Buffer.isBuffer(rawBody)) {
       this.logger.warn('notify rejected: missing signature headers or raw body')
       return { code: 'FAIL', message: 'invalid request' }
     }
 
     /**
-     * 本番では /v3/certificates で取得したプラットフォーム証明書で検証すること。
-     * 証明書は定期的にローテーションされるため、取得結果をキャッシュしつつ
-     * serial_no が未知なら再取得する実装が必要。
-     *
-     * const ok = this.wechatPay.verifyNotifySignature(
-     *   timestamp, nonce, rawBody.toString('utf8'), signature, platformCert,
-     * )
-     * if (!ok) return { code: 'FAIL', message: 'signature verification failed' }
+     * 署名検証。これが通らない通知は「微信支付から来た」と見なせない。
+     * 検証を飛ばすと、誰でもこのエンドポイントを叩いて注文を
+     * 支払い済みにできてしまう。
      */
+    const verified = await this.certificates.verify(
+      serial,
+      timestamp,
+      nonce,
+      rawBody.toString('utf8'),
+      signature,
+    )
+
+    if (!verified) {
+      this.logger.error(`notify signature verification failed (serial=${serial})`)
+      // 偽の通知に再送を促す必要はないが、証明書取得の一時失敗で
+      // 正規の通知を落とした可能性もあるため FAIL を返して再送させる
+      return { code: 'FAIL', message: 'signature verification failed' }
+    }
 
     try {
       const decrypted = this.wechatPay.decryptNotify(rawBody)

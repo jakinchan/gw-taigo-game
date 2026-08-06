@@ -11,6 +11,12 @@ import { randomInt } from 'node:crypto'
 import { PrismaService } from '../common/prisma/prisma.service'
 import { FxService } from '../fx/fx.service'
 import { CouponsService } from '../coupons/coupons.service'
+import { TaxRateService } from '../customs/tax-rate.service'
+import {
+  ANNUAL_LIMIT_CNY,
+  PurchaseLimitService,
+  SINGLE_LIMIT_CNY,
+} from '../customs/purchase-limit.service'
 import { CreateOrderDto } from './dto/create-order.dto'
 
 /** 送料（分）。閾値以上で無料。 */
@@ -18,14 +24,6 @@ const SHIPPING = {
   standard: { fee: 1000, freeThreshold: 19900 },
   express: { fee: 2500, freeThreshold: 49900 },
 } as const
-
-/**
- * 越境EC の行郵税。
- * 中国の跨境电商综合税は「関税 0% + 増値税・消費税の 70%」で、
- * 品目により税率が異なる。ここでは健康食品の一般的な税率で概算する。
- * 実運用では商品ごとの HS コードから税率テーブルを引くこと。
- */
-const CROSS_BORDER_TAX_RATE = 0.091
 
 @Injectable()
 export class OrdersService {
@@ -35,6 +33,8 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly fx: FxService,
     private readonly coupons: CouponsService,
+    private readonly taxRates: TaxRateService,
+    private readonly purchaseLimits: PurchaseLimitService,
   ) {}
 
   /**
@@ -45,10 +45,28 @@ export class OrdersService {
     const { lines, address } = await this.resolve(userId, dto)
     const amounts = await this.calculate(userId, lines, dto)
 
+    /**
+     * プレビューでは限度額違反でも例外にせず、判定結果を返すだけにする。
+     * 決済直前に初めて弾かれるより、確認画面の時点で残枠を見せたほうが親切。
+     */
+    const limit = await this.checkPurchaseLimit(userId, lines, amounts.discountCny)
+
     return {
       id: '',
       orderNo: '',
       status: OrderStatus.pending_payment,
+      crossBorderLimit: limit.required
+        ? {
+            allowed: limit.check.allowed,
+            reason: limit.check.reason ?? null,
+            usedCny: limit.check.usedCny,
+            remainingCny: limit.check.remainingCny,
+            dutiableCny: limit.check.dutiableCny,
+            singleLimitCny: SINGLE_LIMIT_CNY,
+            annualLimitCny: ANNUAL_LIMIT_CNY,
+            year: limit.check.year,
+          }
+        : null,
       items: lines.map((line) => ({
         productId: line.product.id,
         sku: line.product.sku,
@@ -75,6 +93,11 @@ export class OrdersService {
   async create(userId: string, dto: CreateOrderDto) {
     const { lines, address } = await this.resolve(userId, dto)
     const amounts = await this.calculate(userId, lines, dto)
+
+    // 注文確定時は限度額違反を必ず弾く
+    const limit = await this.checkPurchaseLimit(userId, lines, amounts.discountCny)
+    this.assertWithinLimit(limit)
+
     const orderNo = generateOrderNo()
 
     return this.prisma.$transaction(async (tx) => {
@@ -104,18 +127,28 @@ export class OrdersService {
           fxQuotedAt: new Date(amounts.fxQuotedAt),
           totalJpyEstimate: amounts.totalJpyEstimate,
           couponCode: dto.couponCode,
+          // 通関申告・年間限度額の集計キー。後から本人情報が変わっても
+          // この注文がどの名義で申告されたかは動かさない。
+          declarantIdHash: limit.required ? limit.idCardHash : null,
 
           items: {
-            create: lines.map((line) => ({
-              productId: line.product.id,
-              sku: line.product.sku,
-              nameSnapshot: line.product.name as Prisma.InputJsonValue,
-              thumbnail: line.product.thumbnail,
-              priceCny: line.product.priceCny,
-              quantity: line.quantity,
-              batchNo:
-                allocations.find((a) => a.productId === line.product.id)?.batchNo ?? null,
-            })),
+            create: lines.map((line) => {
+              const taxLine = amounts.taxLines.find((t) => t.productId === line.product.id)
+              return {
+                productId: line.product.id,
+                sku: line.product.sku,
+                nameSnapshot: line.product.name as Prisma.InputJsonValue,
+                thumbnail: line.product.thumbnail,
+                priceCny: line.product.priceCny,
+                quantity: line.quantity,
+                batchNo:
+                  allocations.find((a) => a.productId === line.product.id)?.batchNo ?? null,
+                // 適用した HS コードと税率を明細に固定保存する
+                hsCode: taxLine?.hsCode ?? null,
+                appliedTaxRate: taxLine?.rate ?? 0,
+                taxCny: taxLine?.taxCny ?? 0,
+              }
+            }),
           },
         },
         include: { items: true },
@@ -224,7 +257,10 @@ export class OrdersService {
    */
   private async calculate(
     userId: string,
-    lines: { product: { priceCny: number; isCrossBorder: boolean }; quantity: number }[],
+    lines: {
+      product: { id: string; priceCny: number; isCrossBorder: boolean; hsCode: string | null }
+      quantity: number
+    }[],
     dto: CreateOrderDto,
   ) {
     const subtotalCny = lines.reduce(
@@ -235,11 +271,20 @@ export class OrdersService {
     const rule = SHIPPING[dto.shippingMethod]
     let shippingFeeCny = subtotalCny >= rule.freeThreshold ? 0 : rule.fee
 
-    // 越境EC 商品の行郵税
-    const crossBorderSubtotal = lines
-      .filter((line) => line.product.isCrossBorder)
-      .reduce((sum, line) => sum + line.product.priceCny * line.quantity, 0)
-    const taxCny = Math.round(crossBorderSubtotal * CROSS_BORDER_TAX_RATE)
+    /**
+     * 越境EC の綜合税は HS コードごとに税率が違う。明細単位で計算し、
+     * 適用税率を明細に残せるよう内訳も返す（税制改正後に過去注文を
+     * 再計算させないため）。
+     */
+    const taxLines = lines.map((line) => {
+      if (!line.product.isCrossBorder) {
+        return { productId: line.product.id, hsCode: null, rate: 0, taxCny: 0 }
+      }
+      const lineTotal = line.product.priceCny * line.quantity
+      const { taxCny, rate } = this.taxRates.calculateTax(line.product.hsCode, lineTotal)
+      return { productId: line.product.id, hsCode: line.product.hsCode, rate, taxCny }
+    })
+    const taxCny = taxLines.reduce((sum, line) => sum + line.taxCny, 0)
 
     // クーポン
     let discountCny = 0
@@ -265,6 +310,72 @@ export class OrdersService {
       totalJpyEstimate: this.fx.toJpy(totalCny, quote.rate),
       fxRate: quote.rate,
       fxQuotedAt: quote.quotedAt,
+      taxLines,
+    }
+  }
+
+  /**
+   * 越境EC の購入限度額チェック。
+   *
+   * 限度額に算入するのは「商品実付金額」（値引き後の商品価額）で、
+   * 送料と税額は含めない。越境商品を 1 つも含まない注文は対象外。
+   */
+  private async checkPurchaseLimit(
+    userId: string,
+    lines: { product: { priceCny: number; isCrossBorder: boolean }; quantity: number }[],
+    discountCny: number,
+  ) {
+    const crossBorderSubtotal = lines
+      .filter((line) => line.product.isCrossBorder)
+      .reduce((sum, line) => sum + line.product.priceCny * line.quantity, 0)
+
+    if (crossBorderSubtotal === 0) {
+      return { required: false as const }
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { idCardHash: true, realNameVerified: true },
+    })
+
+    // 値引きは越境商品にも按分されるものとして扱う（保守的に全額を差し引かない）
+    const dutiableCny = Math.max(crossBorderSubtotal - discountCny, 0)
+    const check = await this.purchaseLimits.check(
+      user?.realNameVerified ? user.idCardHash : null,
+      dutiableCny,
+    )
+
+    return { required: true as const, check, idCardHash: user?.idCardHash ?? null }
+  }
+
+  /** 限度額違反を、クライアントが分岐できる形の例外に変換する */
+  private assertWithinLimit(result: Awaited<ReturnType<OrdersService['checkPurchaseLimit']>>) {
+    if (!result.required || result.check.allowed) return
+
+    const { check } = result
+    switch (check.reason) {
+      case 'not_verified':
+        throw new BadRequestException({
+          code: 'REAL_NAME_REQUIRED',
+          message: '跨境商品需完成实名认证后购买',
+        })
+      case 'single_exceeded':
+        throw new BadRequestException({
+          code: 'SINGLE_LIMIT_EXCEEDED',
+          message: `单次交易限值 ${SINGLE_LIMIT_CNY / 100} 元`,
+          limitCny: SINGLE_LIMIT_CNY,
+          dutiableCny: check.dutiableCny,
+        })
+      case 'annual_exceeded':
+        throw new BadRequestException({
+          code: 'ANNUAL_LIMIT_EXCEEDED',
+          message: `${check.year} 年度个人额度剩余 ${(check.remainingCny / 100).toFixed(2)} 元`,
+          limitCny: ANNUAL_LIMIT_CNY,
+          usedCny: check.usedCny,
+          remainingCny: check.remainingCny,
+        })
+      default:
+        throw new BadRequestException({ code: 'LIMIT_EXCEEDED', message: '超出跨境购买额度' })
     }
   }
 

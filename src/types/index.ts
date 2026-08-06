@@ -72,6 +72,11 @@ export interface Product {
   /** 商品説明（成分・効能・使用方法） */
   description: LocalizedText
   ingredients: LocalizedText
+  /**
+   * 栄養成分表（GB 28050「预包装食品营养标签通则」準拠）。
+   * 一覧 API では返らないため任意。詳細ページでのみ表示する。
+   */
+  nutrition?: NutritionItem[]
   /** 「効能」表記は中国の広告法規制に抵触しうるため、承認済み文言のみを CMS 側で管理する */
   benefits: LocalizedText
   usage: LocalizedText
@@ -88,6 +93,27 @@ export interface Product {
   isNew: boolean
   isOnSale: boolean
   createdAt: string
+
+  // ---- 一覧カードの表示要素（营养工厂の意匠に対応） ----
+  /**
+   * 価格の表示単位。健康食品はサブスク的に「1 か月あたり」で見せることが多い。
+   * 'month' なら「¥69/月」、'piece' なら「¥69/个」と描画する。
+   */
+  priceUnit?: 'month' | 'piece' | 'box' | 'day'
+  /** 「4个月量大规格」のような容量バッジ */
+  specLabel?: LocalizedText
+  /** 「市面同品质 ¥300~¥500」の参考価格帯。表示専用の文字列。 */
+  marketPriceRange?: string
+  /** カード右上の斜めリボン。「本品TOP1」「大牌保健」「历史低价」など。 */
+  ribbon?: LocalizedText
+  /** リボンの色。既定は青。 */
+  ribbonTone?: 'primary' | 'accent' | 'dark'
+  /** カード下端のタグバー。「现货·限时 85 折」「部分地区次日达」など。 */
+  footerTag?: LocalizedText
+  /** 在庫・生産の状態。众筹专区では 'producing' を出す。 */
+  stockLabel?: 'in_stock' | 'producing' | 'preorder'
+  /** 割引が効いている場合に「折后」ラベルを出す */
+  hasDiscount?: boolean
 }
 
 export type ProductSort = 'default' | 'sales' | 'price_asc' | 'price_desc' | 'newest'

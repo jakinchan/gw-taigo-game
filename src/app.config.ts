@@ -1,16 +1,23 @@
 export default defineAppConfig({
   pages: [
+    // tabBar の 3 ページ
     'pages/index/index',
-    'pages/category/category',
-    'pages/cart/cart',
+    'pages/products/products',
     'pages/user/user',
     // tabBar 以外のページ（メインパッケージ）
     'pages/product/detail',
+    'pages/search/search',
+    'pages/cart/cart',
     'pages/checkout/checkout',
     'pages/order/list',
     'pages/address/list',
     'pages/address/edit',
     'pages/settings/settings',
+    // キャンペーン導線
+    'pages/lottery/lottery',
+    'pages/points/points',
+    'pages/consult/consult',
+    'pages/newarrival/newarrival',
   ],
 
   window: {
@@ -28,8 +35,8 @@ export default defineAppConfig({
    * services/i18n.ts の syncTabBarText() が Taro.setTabBarItem で書き換える。
    */
   tabBar: {
-    color: '#9aa19c',
-    selectedColor: '#4caf50',
+    color: '#9aa0a6',
+    selectedColor: '#2b5ce6',
     backgroundColor: '#ffffff',
     borderStyle: 'white',
     list: [
@@ -40,16 +47,10 @@ export default defineAppConfig({
         selectedIconPath: 'assets/tabbar/home-active.png',
       },
       {
-        pagePath: 'pages/category/category',
-        text: '分类',
+        pagePath: 'pages/products/products',
+        text: '全部商品',
         iconPath: 'assets/tabbar/category.png',
         selectedIconPath: 'assets/tabbar/category-active.png',
-      },
-      {
-        pagePath: 'pages/cart/cart',
-        text: '购物车',
-        iconPath: 'assets/tabbar/cart.png',
-        selectedIconPath: 'assets/tabbar/cart-active.png',
       },
       {
         pagePath: 'pages/user/user',

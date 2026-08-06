@@ -1,0 +1,124 @@
+.products {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: $color-bg;
+
+  // ---------- ヘッダー ----------
+  &__header {
+    flex-shrink: 0;
+    background: $color-surface;
+  }
+
+  &__header-row {
+    @include flex(space-between, center);
+    height: 44px;
+    padding: 0 $page-padding;
+  }
+
+  &__icons {
+    @include flex(flex-start, center);
+    gap: $space-md;
+    // タイトルを中央に保つため、左右で同じ幅を確保する
+    min-width: 84px;
+
+    &--ghost {
+      // 右側は見えないスペーサー
+      visibility: hidden;
+    }
+  }
+
+  &__icon {
+    font-size: $font-body;
+    color: $color-text;
+    @include expand-tap-area;
+  }
+
+  &__title {
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+    @include ellipsis;
+  }
+
+  // ---------- 出荷区分セグメント ----------
+  &__zones {
+    @include flex(center, center);
+    gap: $space-xl;
+    padding-bottom: $space-sm;
+  }
+
+  &__zone {
+    @include flex(center, center);
+    height: 28px;
+    padding: 0 $space-lg;
+    border-radius: $radius-pill;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+
+    &.is-active {
+      background: $color-primary;
+      color: $color-text-inverse;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  // ---------- 本体 ----------
+  &__body {
+    display: flex;
+    flex: 1;
+    // flex 子要素で ScrollView を正しく縮ませるために必要
+    min-height: 0;
+  }
+
+  &__sidebar {
+    width: 88px;
+    height: 100%;
+    flex-shrink: 0;
+    background: $color-surface;
+  }
+
+  &__side-item {
+    @include flex(center, center);
+    min-height: 46px;
+    padding: $space-xs $space-xxs;
+  }
+
+  &__side-text {
+    font-size: $font-caption;
+    color: $color-text-secondary;
+    text-align: center;
+    line-height: 1.35;
+  }
+
+  &__side-item.is-active &__side-text {
+    color: $color-primary;
+    font-weight: $font-weight-heavy;
+  }
+
+  &__list {
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+    background: $color-bg;
+  }
+
+  &__section-title {
+    display: block;
+    padding: $space-sm $space-xs $space-xxs;
+    font-size: $font-sub;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__grid {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0 ($space-xs - $space-xxs);
+  }
+
+  &__grid-cell {
+    width: 50%;
+    padding: 0 $space-xxs $space-xs;
+  }
+}

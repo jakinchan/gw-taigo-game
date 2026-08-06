@@ -1,0 +1,147 @@
+.search {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: $color-bg;
+
+  // ---------- 検索バー ----------
+  &__bar {
+    @include flex(flex-start, center);
+    flex-shrink: 0;
+    padding-left: $page-padding;
+    padding-right: $space-xs;
+    padding-bottom: $space-xs;
+    background: $color-surface;
+    @include hairline(bottom);
+  }
+
+  &__field {
+    @include flex(flex-start, center);
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 $space-sm;
+    border-radius: $radius-pill;
+    background: $color-bg;
+  }
+
+  &__field-icon {
+    font-size: $font-caption;
+    margin-right: $space-xs;
+    opacity: 0.6;
+  }
+
+  &__input {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__placeholder {
+    font-size: $font-sub;
+    color: $color-text-tertiary;
+  }
+
+  &__clear {
+    @include flex(center, center);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: $color-border;
+    color: $color-surface;
+    font-size: 10px;
+    @include expand-tap-area(32px);
+  }
+
+  &__cancel {
+    flex-shrink: 0;
+    padding: 0 $space-sm;
+    font-size: $font-sub;
+    color: $color-primary;
+    @include expand-tap-area;
+  }
+
+  // ---------- 履歴・人気キーワード ----------
+  &__panels {
+    flex: 1;
+    overflow-y: auto;
+    padding: $space-sm $page-padding;
+  }
+
+  &__panel {
+    margin-bottom: $space-md;
+    padding: $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+  }
+
+  &__panel-head {
+    @include flex(space-between, center);
+    margin-bottom: $space-sm;
+  }
+
+  &__panel-title {
+    font-size: $font-sub;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__panel-action {
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    @include expand-tap-area;
+  }
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $space-xs;
+  }
+
+  &__tag {
+    @include flex(center, center);
+    height: 30px;
+    padding: 0 $space-sm;
+    border-radius: $radius-pill;
+    background: $color-bg;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+    max-width: 100%;
+    @include ellipsis;
+
+    &--hot {
+      background: $color-primary-bg;
+      color: $color-primary-dark;
+    }
+
+    &--hover {
+      opacity: 0.6;
+    }
+  }
+
+  // ---------- 結果 ----------
+  &__results {
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__count {
+    display: block;
+    padding: $space-sm $page-padding 0;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  &__grid {
+    display: flex;
+    flex-wrap: wrap;
+    padding: $space-sm ($page-padding - $space-xs / 2) 0;
+  }
+
+  &__grid-cell {
+    width: 50%;
+    padding: 0 ($space-xs / 2) $space-sm;
+  }
+}
