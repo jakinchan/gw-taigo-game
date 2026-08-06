@@ -1,16 +1,36 @@
 import type { UserConfigExport } from '@tarojs/cli'
 
 /**
- * デザイン基準幅は 375（iPhone の論理ピクセル = pt）。
+ * 出力先はプラットフォームごとに分ける。
  *
- * designWidth: 750 にすると、SCSS に書いた `1px` は `1rpx`（= 0.5pt）に
- * 変換されてしまい、全ての寸法が意図の半分になる。
- * 375 にすることで `1px` → `2rpx` = 1pt となり、仕様の
- * 「22pt / 17pt / 15pt / 14pt / 12pt」をそのまま px で書ける。
+ * 共有すると、weapp と h5 を同時に（あるいは続けて）ビルドしたときに
+ * 一方が dist/ を消そうとして他方のプロセスが掴んでいるファイルに当たり、
+ * Windows では EPERM で落ちる。
+ *
+ * 微信開発者ツールで開くのは dist/weapp（project.config.json 参照）。
  */
+function resolveOutputRoot(): string {
+  const fromEnv = process.env.TARO_ENV
+  if (fromEnv) return `dist/${fromEnv}`
+
+  // CLI が TARO_ENV を立てる前に config が読まれる場合に備えて argv も見る
+  const typeIndex = process.argv.indexOf('--type')
+  const fromArgv = typeIndex >= 0 ? process.argv[typeIndex + 1] : undefined
+  return `dist/${fromArgv ?? 'weapp'}`
+}
+
 const config: UserConfigExport = {
   projectName: 'health-food-shop',
   date: '2026-08-06',
+  outputRoot: resolveOutputRoot(),
+
+  /**
+   * デザイン基準幅は 375（iPhone の論理ピクセル = pt）。
+   *
+   * 750 にすると SCSS に書いた `1px` が `1rpx`（= 0.5pt）に変換され、
+   * 全ての寸法が意図の半分になる。375 なら `1px` → `2rpx` = 1pt となり、
+   * 仕様の「22pt / 17pt / 15pt / 14pt / 12pt」をそのまま px で書ける。
+   */
   designWidth: 375,
   deviceRatio: {
     375: 2 / 1,
@@ -19,7 +39,6 @@ const config: UserConfigExport = {
     828: 1.81 / 2,
   },
   sourceRoot: 'src',
-  outputRoot: 'dist',
   plugins: [],
 
   /**
@@ -88,6 +107,8 @@ const config: UserConfigExport = {
     publicPath: '/',
     staticDirectory: 'static',
     devServer: {
+      // scripts/dev.js が空きポートを選んで渡してくる
+      port: Number(process.env.H5_PORT) || 10086,
       client: {
         /**
          * 画像 CDN 未接続の開発環境では商品画像が 404 になり、

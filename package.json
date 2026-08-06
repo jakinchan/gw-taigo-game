@@ -21,7 +21,11 @@
     "dev:h5": "npm run build:h5 -- --watch",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
-    "test": "jest"
+    "test": "jest",
+    "dev": "node scripts/dev.js",
+    "dev:api": "node scripts/dev.js --no-h5",
+    "dev:fresh": "node scripts/dev.js --fresh",
+    "dev:stop": "node scripts/dev-stop.js"
   },
   "dependencies": {
     "@babel/runtime": "^7.24.0",

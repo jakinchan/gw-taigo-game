@@ -132,7 +132,42 @@ WeChat ミニプログラム（Taro + React + TypeScript）と NestJS API によ
 
 ---
 
-## セットアップ
+## クイックスタート
+
+Docker があれば、これ 1 つで DB・API・画面がすべて立ち上がります。
+
+```bash
+npm run dev
+```
+
+やっていること:
+
+1. 依存のインストール（`node_modules` が無ければ）
+2. PostgreSQL を Docker で起動（**空きポートを自動で選ぶ**）
+3. `backend/.env` の生成（秘密鍵はランダム。既存があれば秘密鍵は温存）
+4. `prisma generate` → `migrate deploy` → シード投入（投入済みならスキップ）
+5. API と H5 dev server を起動し、応答するまで待つ
+
+完了すると URL が表示されます。`Ctrl+C` で API と H5 が止まります
+（DB コンテナは次回すぐ使えるよう動かしたままにします）。
+
+| コマンド | 用途 |
+| --- | --- |
+| `npm run dev` | DB + API + 画面（H5） |
+| `npm run dev:api` | API のみ（微信開発者ツールで確認する場合） |
+| `npm run dev:fresh` | DB を作り直してシードから入れ直す |
+| `npm run dev:stop` | DB コンテナを停止（データは残る） |
+| `npm run dev:stop -- --purge` | DB コンテナを削除（データも消える） |
+
+**ポートは固定していません。** 開発機には既に PostgreSQL が動いていたり、
+3000 番が別プロジェクトに使われていたりするのが普通で、固定すると毎回そこで
+詰まります。空きを探して `backend/.env` と H5 のビルド定数へ自動で反映します。
+
+Docker が無い場合は `backend/.env` の `DATABASE_URL` を自分で設定してください。
+
+---
+
+## セットアップ（手動で行う場合）
 
 ### 1. ミニプログラム
 
@@ -146,7 +181,11 @@ tabBar アイコンとロゴは Git 管理下にありますが、作り直す�
 node scripts/gen-tabbar-icons.js
 ```
 
-開発ビルド（`dist/` に出力され、微信開発者ツールで開く）:
+開発ビルド（`dist/weapp/` に出力され、微信開発者ツールで開く）:
+
+> 出力先はプラットフォームごとに分けています（`dist/weapp` / `dist/h5`）。
+> 共有すると、一方が `dist/` を消そうとして他方が掴んでいるファイルに当たり、
+> Windows では EPERM でビルドが落ちます。
 
 ```bash
 npm run dev:weapp

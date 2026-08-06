@@ -1,5 +1,5 @@
 {
-  "miniprogramRoot": "dist/",
+  "miniprogramRoot": "dist/weapp/",
   "projectname": "health-food-shop",
   "description": "健康食品跨境电商小程序",
   "appid": "touristappid",
