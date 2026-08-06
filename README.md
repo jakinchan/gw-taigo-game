@@ -510,19 +510,53 @@ tabBar は **3 つ**（首页 / 全部商品 / 我的）。カートは tabBar �
 
 ---
 
-## ビルド検証の状況
+## 検証の状況
 
 | 対象 | コマンド | 結果 |
 | --- | --- | --- |
 | ミニプログラム 型チェック | `npm run typecheck` | 通過 |
 | ミニプログラム ビルド | `npm run build:weapp` | 通過（15 ページ / 0.53 MB） |
-| バックエンド Prisma | `npx prisma generate` | 通過 |
+| バックエンド Prisma | `npx prisma generate` / `migrate dev` | 通過 |
 | バックエンド 型チェック | `npx tsc --noEmit` | 通過 |
 | バックエンド ビルド | `npm run build` | 通過 |
+| **業務ロジックの通し検証** | `cd backend && npm run e2e` | **42 件すべて通過** |
 
-DB を用意しないと確認できない部分（マイグレーション適用、シード投入、
-実際の注文フロー）は未検証です。`docker run -p 5432:5432 -e POSTGRES_PASSWORD=password postgres:16`
-などで DB を立ててから `npx prisma migrate dev` を実行してください。
+### 通し検証（e2e）が確認していること
+
+`backend/scripts/e2e-check.ts` が、起動中の API に対して実際の HTTP で確認します。
+
+- 認証: JWT でのアクセス、トークン無しは 401、他人の注文 ID は 404
+- 金額: 小計が DB 価格と一致、送料の閾値、HS コード別の綜合税（9.1%）、合計の内訳
+- 実名認証: チェックディジット検証、身分証が平文で保存されないこと、マスク表示
+- 越境EC 限度額: 未認証で拒否、単回 5,000 元・年間 26,000 元での拒否と残枠の集計
+- 在庫: FEFO で期限の近いロットから引き当て、キャンセルで確保が戻る
+- 注文明細に適用税率・引き当てロット・申告名義人が固定保存されること
+- クーポン: 割引額、下限金額未満の拒否
+- 抽選: 賞品一覧に確率と在庫が含まれないこと、積分の消費、冪等キーでの二重消費防止
+
+微信ログインは通せないため、テスト用ユーザーを直接作って同じ `JWT_SECRET` で
+トークンを署名しています（本番の認証経路には手を入れていません）。
+
+### ローカルで一式を起動する
+
+```bash
+docker run -d --name hfs-postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=health_food_shop -p 55432:5432 postgres:16-alpine
+```
+
+`backend/.env` の `DATABASE_URL` をこのポートに合わせ、次を実行します。
+
+```bash
+cd backend && npx prisma migrate dev && npm run seed && npm run start:dev
+```
+
+別のターミナルでミニプログラムの H5 版を起動すると、ブラウザで画面を確認できます。
+
+```bash
+npm run dev:h5
+```
+
+まだ検証できていないのは、微信の実機が要る部分（`wx.login` の実フロー、
+`wx.requestPayment`、支付通知の受信）と、海关申告の実送信です。
 
 ---
 

@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import type { ApiResponse } from '@/types'
+import type { ApiErrorCode, ApiResponse } from '@/types'
 import { getCache, getStorage, removeStorage, setCache } from './storage'
 
 declare const API_BASE_URL: string
@@ -21,12 +21,19 @@ const BASE_URL: string = (() => {
   }
 })()
 
-/** 業務エラー。HTTP 200 だが code !== 0 のケース。 */
+/** 業務エラー。HTTP 200 だが code !== 0 のケースと、HTTP エラーの両方を表す。 */
 export class ApiError extends Error {
   constructor(
     public readonly code: number,
     message: string,
     public readonly httpStatus?: number,
+    /**
+     * サーバが返す業務エラーコード。UI の分岐はこれで行う。
+     * 例: 'REAL_NAME_REQUIRED' → 実名認証画面へ誘導
+     */
+    public readonly errorCode?: string,
+    /** limitCny / remainingCny など、エラー表示に使う付随情報 */
+    public readonly details?: Record<string, unknown>,
   ) {
     super(message)
     this.name = 'ApiError'
@@ -115,12 +122,18 @@ async function send<T>(path: string, options: RequestOptions, retried = false): 
   }
 
   if (res.statusCode < 200 || res.statusCode >= 300) {
-    throw new ApiError(res.statusCode, res.data?.message ?? 'HTTP error', res.statusCode)
+    throw new ApiError(
+      res.statusCode,
+      res.data?.message ?? 'HTTP error',
+      res.statusCode,
+      res.data?.errorCode,
+      res.data?.details,
+    )
   }
 
   const body = res.data
   if (body.code !== 0) {
-    throw new ApiError(body.code, body.message)
+    throw new ApiError(body.code, body.message, res.statusCode, body.errorCode, body.details)
   }
 
   return body.data
@@ -153,4 +166,12 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
 export function toUserMessage(err: unknown, fallback: string): string {
   if (err instanceof ApiError) return err.message || fallback
   return fallback
+}
+
+/**
+ * 業務エラーコードで分岐したいときに使う。
+ * @example if (isErrorCode(err, 'REAL_NAME_REQUIRED')) goVerify()
+ */
+export function isErrorCode(err: unknown, code: ApiErrorCode): boolean {
+  return err instanceof ApiError && err.errorCode === code
 }

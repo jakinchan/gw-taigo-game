@@ -279,4 +279,22 @@ export interface ApiResponse<T> {
   code: number
   message: string
   data: T
+  /**
+   * 業務エラーコード。HTTP ステータスだけでは「なぜ失敗したか」が
+   * 分からないため、UI の分岐にはこちらを使う。
+   * 例: 'REAL_NAME_REQUIRED' なら実名認証画面へ誘導する。
+   */
+  errorCode?: string
+  /** limitCny / remainingCny など、エラー表示に使う付随情報 */
+  details?: Record<string, unknown>
 }
+
+/** サーバが返す業務エラーコード */
+export type ApiErrorCode =
+  | 'REAL_NAME_REQUIRED'
+  | 'SINGLE_LIMIT_EXCEEDED'
+  | 'ANNUAL_LIMIT_EXCEEDED'
+  | 'LIMIT_EXCEEDED'
+  | 'INVALID_ID_CARD'
+  | 'NOT_ENOUGH_POINTS'
+  | 'NO_DRAW_CHANCE'

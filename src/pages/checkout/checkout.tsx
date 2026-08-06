@@ -8,7 +8,7 @@ import { useI18n } from '@/services/i18n'
 import { selectSelectedItems, useCartStore } from '@/store/cart'
 import { usePreferenceStore } from '@/store/preference'
 import { cnyToJpy, formatCny, formatJpy } from '@/utils/currency'
-import { toUserMessage } from '@/utils/request'
+import { isErrorCode, toUserMessage } from '@/utils/request'
 import SafeImage from '@/components/SafeImage'
 import Loading from '@/components/Loading'
 
@@ -147,6 +147,32 @@ export default function Checkout() {
       Taro.redirectTo({ url: '/pages/order/list?status=pending_payment' })
     } catch (err) {
       console.error('[checkout] submit failed', err)
+
+      /**
+       * 越境EC 特有の失敗は、トーストで終わらせず次の行動へ導く。
+       * 「なぜ買えないのか」が分からないまま放置されるのが一番の離脱要因。
+       */
+      if (isErrorCode(err, 'REAL_NAME_REQUIRED')) {
+        const { confirm } = await Taro.showModal({
+          title: t('checkout.realNameRequired'),
+          content: t('checkout.realNameRequiredNote'),
+          confirmText: t('checkout.goVerify'),
+          cancelText: t('common.cancel'),
+        })
+        if (confirm) Taro.navigateTo({ url: '/pages/settings/settings?tab=realName' })
+        return
+      }
+
+      if (isErrorCode(err, 'SINGLE_LIMIT_EXCEEDED') || isErrorCode(err, 'ANNUAL_LIMIT_EXCEEDED')) {
+        Taro.showModal({
+          title: t('checkout.limitExceeded'),
+          content: toUserMessage(err, t('checkout.limitExceededNote')),
+          showCancel: false,
+          confirmText: t('common.confirm'),
+        })
+        return
+      }
+
       Taro.showToast({ title: toUserMessage(err, t('common.networkError')), icon: 'none' })
     } finally {
       setSubmitting(false)

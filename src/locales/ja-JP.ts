@@ -157,6 +157,12 @@ const jaJP: TranslationSchema = {
     payFailed: '決済に失敗しました',
     payCancelled: '決済をキャンセルしました',
     freeShipping: '送料無料',
+    realNameRequired: '実名認証が必要です',
+    realNameRequiredNote:
+      '税関の規定により、越境商品の購入には実名認証が必要です。注文者・支払者・受取人が同一である必要があります。',
+    goVerify: '認証する',
+    limitExceeded: '越境購入の上限を超えています',
+    limitExceededNote: '越境EC 小売輸入の上限は 1 回 5,000 元・年間 26,000 元です。',
   },
   user: {
     title: 'マイページ',

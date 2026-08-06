@@ -32,14 +32,38 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const status = isHttp ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR
 
     let message = 'Internal server error'
+    /**
+     * 業務エラーコード。クライアントはこれで分岐する
+     * （例: REAL_NAME_REQUIRED なら実名認証画面へ誘導）。
+     * HTTP ステータスだけでは「なぜ 400 なのか」が伝わらない。
+     */
+    let errorCode: string | undefined
+    /** limitCny / remainingCny など、UI で出し分けるための付随情報 */
+    let details: Record<string, unknown> | undefined
+
     if (isHttp) {
       const payload = exception.getResponse()
+
       if (typeof payload === 'string') {
         message = payload
-      } else if (typeof payload === 'object' && payload !== null && 'message' in payload) {
-        const raw = (payload as { message: string | string[] }).message
-        // ValidationPipe は message を配列で返す
-        message = Array.isArray(raw) ? raw[0] : raw
+      } else if (typeof payload === 'object' && payload !== null) {
+        const obj = payload as Record<string, unknown>
+
+        if ('message' in obj) {
+          const raw = obj.message as string | string[]
+          // ValidationPipe は message を配列で返す
+          message = Array.isArray(raw) ? raw[0] : raw
+        }
+
+        // throw new BadRequestException({ code: 'XXX', ... }) の形を拾う
+        if (typeof obj.code === 'string') errorCode = obj.code
+
+        const extra = Object.fromEntries(
+          Object.entries(obj).filter(
+            ([key]) => !['message', 'code', 'statusCode', 'error'].includes(key),
+          ),
+        )
+        if (Object.keys(extra).length > 0) details = extra
       }
     }
 
@@ -53,6 +77,8 @@ export class HttpExceptionFilter implements ExceptionFilter {
     response.status(status).json({
       code: status * 100,
       message,
+      ...(errorCode ? { errorCode } : {}),
+      ...(details ? { details } : {}),
       data: null,
     })
   }

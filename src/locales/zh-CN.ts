@@ -158,6 +158,11 @@ const zhCN = {
     payFailed: '支付失败',
     payCancelled: '已取消支付',
     freeShipping: '免运费',
+    realNameRequired: '需要实名认证',
+    realNameRequiredNote: '根据海关规定，购买跨境商品需完成实名认证。订单人、支付人与收件人需为同一人。',
+    goVerify: '去认证',
+    limitExceeded: '超出跨境购买额度',
+    limitExceededNote: '跨境电商零售进口单次限值 5,000 元，年度限值 26,000 元。',
   },
   user: {
     title: '我的',
