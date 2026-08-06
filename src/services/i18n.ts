@@ -48,10 +48,24 @@ export function syncTabBarText(locale: Locale): void {
   const t = resources[locale].tabBar
   // tabBar は 3 つ（首页 / 全部商品 / 我的）。順序は app.config.ts と揃える。
   const labels = [t.home, t.allProducts, t.user]
+
   labels.forEach((text, index) => {
-    Taro.setTabBarItem({ index, text }).catch(() => {
-      // tabBar を持たないページから呼ばれた場合は無視してよい
-    })
+    /**
+     * H5 では setTabBarItem が Promise を返さないことがあり、
+     * 戻り値に .catch() を繋ぐと同期的に TypeError になる。
+     * tabBar を持たないページから呼ばれる場合もあるので、
+     * 呼び出しごと try/catch で包む。
+     */
+    try {
+      const result = Taro.setTabBarItem({ index, text })
+      if (result && typeof result.catch === 'function') {
+        result.catch(() => {
+          /* tabBar が無いページからの呼び出しは無視してよい */
+        })
+      }
+    } catch {
+      /* 同上 */
+    }
   })
 }
 

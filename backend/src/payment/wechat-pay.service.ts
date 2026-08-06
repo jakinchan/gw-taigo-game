@@ -60,17 +60,70 @@ export class WechatPayService {
   private readonly serialNo: string
   private readonly apiV3Key: string
   private readonly notifyUrl: string
-  private readonly privateKey: string
+  private readonly keyPath: string
+
+  /** 秘密鍵は初回利用時に読み込む（下の privateKey を参照） */
+  private cachedPrivateKey: string | null = null
 
   constructor(private readonly config: ConfigService) {
-    this.appId = this.config.getOrThrow<string>('WECHAT_APP_ID')
-    this.mchId = this.config.getOrThrow<string>('WECHAT_MCH_ID')
-    this.serialNo = this.config.getOrThrow<string>('WECHAT_MCH_CERT_SERIAL')
-    this.apiV3Key = this.config.getOrThrow<string>('WECHAT_API_V3_KEY')
-    this.notifyUrl = this.config.getOrThrow<string>('WECHAT_PAY_NOTIFY_URL')
+    this.appId = this.config.get<string>('WECHAT_APP_ID', '')
+    this.mchId = this.config.get<string>('WECHAT_MCH_ID', '')
+    this.serialNo = this.config.get<string>('WECHAT_MCH_CERT_SERIAL', '')
+    this.apiV3Key = this.config.get<string>('WECHAT_API_V3_KEY', '')
+    this.notifyUrl = this.config.get<string>('WECHAT_PAY_NOTIFY_URL', '')
+    this.keyPath = this.config.get<string>('WECHAT_MCH_PRIVATE_KEY_PATH', '')
 
-    const keyPath = this.config.getOrThrow<string>('WECHAT_MCH_PRIVATE_KEY_PATH')
-    this.privateKey = fs.readFileSync(keyPath, 'utf8')
+    if (!this.isConfigured()) {
+      // 開発環境では証明書が無いのが普通。起動は止めず、決済を呼んだ時点で明確に失敗させる。
+      this.logger.warn(
+        'WeChat Pay is not fully configured; payment endpoints will return 503. ' +
+          'Set WECHAT_MCH_ID / WECHAT_MCH_CERT_SERIAL / WECHAT_API_V3_KEY / WECHAT_MCH_PRIVATE_KEY_PATH to enable.',
+      )
+    }
+  }
+
+  /** 決済に必要な設定が揃っていて、秘密鍵が実在するか */
+  isConfigured(): boolean {
+    if (
+      !this.appId ||
+      !this.mchId ||
+      !this.serialNo ||
+      !this.apiV3Key ||
+      !this.notifyUrl ||
+      !this.keyPath
+    ) {
+      return false
+    }
+    return fs.existsSync(this.keyPath)
+  }
+
+  /**
+   * 商户 API 秘密鍵。
+   *
+   * コンストラクタで読み込むと、証明書が無い開発環境でアプリ全体が
+   * 起動しなくなる。決済は任意の外部連携なので、実際に決済を呼んだ
+   * ときだけ失敗させる。
+   */
+  private get privateKey(): string {
+    if (this.cachedPrivateKey) return this.cachedPrivateKey
+
+    if (!this.isConfigured()) {
+      throw new HttpException(
+        'WeChat Pay is not configured on this environment',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      )
+    }
+
+    try {
+      this.cachedPrivateKey = fs.readFileSync(this.keyPath, 'utf8')
+      return this.cachedPrivateKey
+    } catch (err) {
+      this.logger.error(`failed to read merchant private key at ${this.keyPath}: ${String(err)}`)
+      throw new HttpException(
+        'WeChat Pay credentials are unavailable',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      )
+    }
   }
 
   /**

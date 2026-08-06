@@ -53,7 +53,8 @@ export class PlatformCertificateService {
   private readonly mchId: string
   private readonly serialNo: string
   private readonly apiV3Key: string
-  private readonly privateKey: string
+  private readonly keyPath: string
+  private cachedPrivateKey: string | null = null
 
   private cache = new Map<string, CachedCertificate>()
   private lastFetchedAt = 0
@@ -66,12 +67,27 @@ export class PlatformCertificateService {
   private static readonly REFRESH_INTERVAL_MS = 12 * 60 * 60 * 1000
 
   constructor(private readonly config: ConfigService) {
-    this.mchId = this.config.getOrThrow<string>('WECHAT_MCH_ID')
-    this.serialNo = this.config.getOrThrow<string>('WECHAT_MCH_CERT_SERIAL')
-    this.apiV3Key = this.config.getOrThrow<string>('WECHAT_API_V3_KEY')
+    this.mchId = this.config.get<string>('WECHAT_MCH_ID', '')
+    this.serialNo = this.config.get<string>('WECHAT_MCH_CERT_SERIAL', '')
+    this.apiV3Key = this.config.get<string>('WECHAT_API_V3_KEY', '')
+    this.keyPath = this.config.get<string>('WECHAT_MCH_PRIVATE_KEY_PATH', '')
+  }
 
-    const keyPath = this.config.getOrThrow<string>('WECHAT_MCH_PRIVATE_KEY_PATH')
-    this.privateKey = fs.readFileSync(keyPath, 'utf8')
+  /**
+   * 設定値が揃っているかに加えて、秘密鍵が実在するかまで確認する。
+   * パスだけ設定されていてファイルが無い状態（開発環境の既定）で
+   * 取得を試みると、起動のたびに ENOENT がログを埋める。
+   */
+  private isConfigured(): boolean {
+    if (!this.mchId || !this.serialNo || !this.apiV3Key || !this.keyPath) return false
+    return fs.existsSync(this.keyPath)
+  }
+
+  /** WechatPayService と同じ理由で遅延読み込みにする */
+  private get privateKey(): string {
+    if (this.cachedPrivateKey) return this.cachedPrivateKey
+    this.cachedPrivateKey = fs.readFileSync(this.keyPath, 'utf8')
+    return this.cachedPrivateKey
   }
 
   /**
@@ -141,6 +157,7 @@ export class PlatformCertificateService {
 
   /** 起動後と 12 時間ごとにリフレッシュしておく（通知到着時の遅延を避ける） */
   startBackgroundRefresh(): void {
+    if (!this.isConfigured()) return
     void this.refresh()
     const timer = setInterval(
       () => void this.refresh(),
@@ -163,6 +180,16 @@ export class PlatformCertificateService {
     rawBody: string,
     signature: string,
   ): Promise<boolean> {
+    /**
+     * 未設定なら検証できないので必ず false。
+     * ここを「設定が無ければ素通し」にすると、開発設定のまま本番へ出た瞬間に
+     * 誰でも支払い済みに書き換えられるエンドポイントになる。
+     */
+    if (!this.isConfigured()) {
+      this.logger.error('WeChat Pay is not configured; rejecting notify signature verification')
+      return false
+    }
+
     // リプレイ攻撃対策: 5 分以上ずれた通知は受け付けない
     const skewSeconds = Math.abs(Date.now() / 1000 - Number(timestamp))
     if (!Number.isFinite(skewSeconds) || skewSeconds > 300) {

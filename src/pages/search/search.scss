@@ -137,11 +137,11 @@
   &__grid {
     display: flex;
     flex-wrap: wrap;
-    padding: $space-sm ($page-padding - $space-xs / 2) 0;
+    padding: $space-sm ($page-padding - $space-xxs) 0;
   }
 
   &__grid-cell {
     width: 50%;
-    padding: 0 ($space-xs / 2) $space-sm;
+    padding: 0 $space-xxs $space-sm;
   }
 }

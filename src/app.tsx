@@ -49,8 +49,16 @@ function App({ children }: PropsWithChildren) {
   }, [locale])
 
   useError((error) => {
-    // 本番では Sentry 等へ送る。ここではログのみ。
-    console.error('[app] uncaught error', error)
+    /**
+     * 本番では Sentry 等へ送る。
+     * Taro は H5 で reason が undefined の resource error も流してくるので、
+     * 中身が分かる形に整形してから出す（`[object Object]` だと調査できない）。
+     */
+    const detail =
+      error && typeof error === 'object'
+        ? JSON.stringify(error, Object.getOwnPropertyNames(error as object))
+        : String(error)
+    console.error('[app] uncaught error:', detail)
   })
 
   return children

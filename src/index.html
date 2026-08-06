@@ -11,15 +11,24 @@
     <meta name="theme-color" content="#4caf50" />
     <title>营养工厂 | 健康食品</title>
     <script>
-      // H5 ビルド時のみ有効。小程序ビルドではこのファイルは使われない。
-      !(function (e) {
-        function t() {
-          var t = e.document.documentElement
-          var n = t.getBoundingClientRect().width
-          t.style.fontSize = n >= 750 ? '75px' : n / 10 + 'px'
+      /**
+       * H5 の rem 基準を設定する（小程序ビルドではこのファイルは使われない）。
+       *
+       * designWidth: 375 のとき postcss-pxtransform は 1px を 1/40 rem に
+       * 変換する。基準幅 375 で 1px = 1 CSS px にするには root を 40px にし、
+       * 画面幅に比例させる。基準は最大 2 倍（幅 750）で頭打ちにして、
+       * タブレットで文字が巨大化しないようにする。
+       */
+      !(function (win) {
+        function setRootFontSize() {
+          var docEl = win.document.documentElement
+          var width = docEl.getBoundingClientRect().width || 375
+          var scale = Math.min(width / 375, 2)
+          docEl.style.fontSize = 40 * scale + 'px'
         }
-        e.addEventListener('resize', t)
-        t()
+        win.addEventListener('resize', setRootFontSize)
+        win.addEventListener('orientationchange', setRootFontSize)
+        setRootFontSize()
       })(window)
     </script>
   </head>

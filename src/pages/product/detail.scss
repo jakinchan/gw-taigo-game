@@ -194,7 +194,7 @@
     font-size: $font-sub;
     font-weight: $font-weight-heavy;
     color: $color-text;
-    // 見出しの左に緑のバーを添える
+    // 見出しの左にメインカラーのバーを添える
     padding-left: $space-xs;
     border-left: 3px solid $color-primary;
   }
@@ -350,13 +350,13 @@
   &__related {
     display: flex;
     flex-wrap: wrap;
-    padding: $space-sm ($page-padding - $space-xs / 2);
+    padding: $space-sm ($page-padding - $space-xxs);
     background: $color-bg;
   }
 
   &__related-cell {
     width: 50%;
-    padding: 0 ($space-xs / 2) $space-sm;
+    padding: 0 $space-xxs $space-sm;
   }
 
   // ---------- 固定フッター ----------

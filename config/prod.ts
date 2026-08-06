@@ -6,7 +6,7 @@ export default {
   },
   defineConstants: {
     // 微信小程序は HTTPS 必須。request 合法域名に登録したドメインのみ使用可。
-    API_BASE_URL: '"https://api.example.com/api"',
+    // API_BASE_URL は config/index.ts に一本化している
   },
   mini: {},
   h5: {

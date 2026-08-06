@@ -4,6 +4,23 @@ import { getCache, getStorage, removeStorage, setCache } from './storage'
 
 declare const API_BASE_URL: string
 
+/**
+ * ビルド時に defineConstants で注入される値。
+ * 注入に失敗している場合（config の読み込みミスなど）に
+ * ReferenceError で全 API が死ぬのを避け、既定値へ落とす。
+ */
+const BASE_URL: string = (() => {
+  try {
+    return API_BASE_URL
+  } catch {
+    console.error(
+      '[request] API_BASE_URL was not injected at build time; ' +
+        'check defineConstants in config/dev.ts and config/prod.ts',
+    )
+    return 'http://localhost:3000/api'
+  }
+})()
+
 /** 業務エラー。HTTP 200 だが code !== 0 のケース。 */
 export class ApiError extends Error {
   constructor(
@@ -44,7 +61,7 @@ export async function login(): Promise<string | null> {
       if (!code) return null
 
       const res = await Taro.request<ApiResponse<{ token: string }>>({
-        url: `${API_BASE_URL}/auth/login`,
+        url: `${BASE_URL}/auth/login`,
         method: 'POST',
         data: { code },
         timeout: 10000,
@@ -79,7 +96,7 @@ async function send<T>(path: string, options: RequestOptions, retried = false): 
   }
 
   const res = await Taro.request<ApiResponse<T>>({
-    url: `${API_BASE_URL}${path}`,
+    url: `${BASE_URL}${path}`,
     method,
     data,
     timeout,

@@ -8,6 +8,7 @@ import { useCartStore } from '@/store/cart'
 import { usePreferenceStore } from '@/store/preference'
 import { cnyToJpy, formatJpy, getFxRate } from '@/utils/currency'
 import { IMAGE_PRESET } from '@/utils/image'
+import { ignoreFailure } from '@/utils/platform'
 import SafeImage from '@/components/SafeImage'
 import PriceTag from '@/components/PriceTag'
 import QuantityStepper from '@/components/QuantityStepper'
@@ -90,7 +91,7 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!product || soldOut) return
     addToCart(product, quantity)
-    Taro.vibrateShort({ type: 'light' }).catch(() => {})
+    ignoreFailure(() => Taro.vibrateShort({ type: 'light' }))
     Taro.showToast({ title: t('product.addedToCart'), icon: 'success', duration: 1200 })
   }
 
