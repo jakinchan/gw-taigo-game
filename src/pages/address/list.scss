@@ -1,0 +1,100 @@
+.addr-list {
+  min-height: 100vh;
+  background: $color-bg;
+
+  &__items {
+    padding: $space-sm $page-padding;
+  }
+
+  &__item {
+    position: relative;
+    margin-bottom: $space-xs;
+    padding: $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+
+    &--hover {
+      background: $color-divider;
+    }
+  }
+
+  &__head {
+    @include flex(flex-start, center);
+    gap: $space-sm;
+  }
+
+  &__name {
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__phone {
+    font-size: $font-sub;
+    color: $color-text-secondary;
+  }
+
+  &__tag {
+    padding: 1px 5px;
+    border-radius: $radius-sm;
+    background: $color-primary-bg;
+    color: $color-primary-dark;
+    font-size: 10px;
+  }
+
+  &__detail {
+    display: block;
+    margin-top: $space-xxs;
+    padding-right: 72px; // 操作アイコンと重ならないように
+    font-size: $font-sub;
+    line-height: 1.5;
+    color: $color-text-secondary;
+  }
+
+  &__idcard {
+    display: block;
+    margin-top: $space-xxs;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  &__actions {
+    @include flex(flex-end, center);
+    position: absolute;
+    right: $space-xs;
+    bottom: $space-xs;
+    gap: $space-xs;
+  }
+
+  &__action {
+    @include flex(center, center);
+    width: 32px;
+    height: 32px;
+    font-size: $font-sub;
+    @include expand-tap-area;
+  }
+
+  &__footer-space {
+    height: 64px;
+    @include safe-area-bottom;
+  }
+
+  &__footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: $space-xs $page-padding;
+    background: $color-surface;
+    box-shadow: $shadow-float;
+    @include safe-area-bottom($space-xs);
+  }
+
+  &__add {
+    @include button-primary;
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+}

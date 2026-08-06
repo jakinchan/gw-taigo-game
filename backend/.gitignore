@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+
+# 秘密情報
+.env
+.env.local
+.env.*.local
+certs/
+*.pem
+*.p12
+
+*.log
+.DS_Store

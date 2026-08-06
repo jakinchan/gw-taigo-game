@@ -1,0 +1,325 @@
+.checkout {
+  min-height: 100vh;
+  padding: $space-sm $page-padding 0;
+  background: $color-bg;
+
+  // ---------- 配送先 ----------
+  &__address {
+    position: relative;
+    padding: $space-md $space-xl $space-md $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+    // 上端に緑のラインを引いて「配送先」であることを視覚的に強調
+    border-top: 3px solid $color-primary;
+
+    &--hover {
+      background: $color-divider;
+    }
+  }
+
+  &__address-head {
+    @include flex(flex-start, center);
+    gap: $space-sm;
+  }
+
+  &__address-name {
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__address-phone {
+    font-size: $font-sub;
+    color: $color-text-secondary;
+  }
+
+  &__address-tag {
+    padding: 1px 5px;
+    border-radius: $radius-sm;
+    background: $color-primary-bg;
+    color: $color-primary-dark;
+    font-size: 10px;
+  }
+
+  &__address-detail {
+    display: block;
+    margin-top: $space-xxs;
+    font-size: $font-sub;
+    line-height: 1.5;
+    color: $color-text-secondary;
+  }
+
+  &__address-empty {
+    font-size: $font-body;
+    color: $color-primary;
+  }
+
+  &__arrow {
+    position: absolute;
+    right: $space-sm;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: $font-title;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- カード ----------
+  &__card {
+    margin-top: $space-sm;
+    padding: $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+  }
+
+  &__card-title {
+    display: block;
+    margin-bottom: $space-sm;
+    font-size: $font-sub;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  // ---------- 商品行 ----------
+  &__item {
+    @include flex(flex-start, center);
+    padding: $space-xs 0;
+  }
+
+  &__item-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: $radius-sm;
+    background: $color-divider;
+    flex-shrink: 0;
+  }
+
+  &__item-info {
+    flex: 1;
+    min-width: 0;
+    margin: 0 $space-sm;
+  }
+
+  &__item-name {
+    display: block;
+    font-size: $font-sub;
+    color: $color-text;
+    @include ellipsis-lines(2);
+  }
+
+  &__item-sku {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    color: $color-text-tertiary;
+  }
+
+  &__item-right {
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  &__item-price {
+    display: block;
+    font-family: $font-family-number;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__item-qty {
+    display: block;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- 選択肢（配送方法・支払い方法） ----------
+  &__option {
+    @include flex(flex-start, center);
+    min-height: 52px;
+    padding: $space-xs 0;
+  }
+
+  &__radio {
+    @include flex(center, center);
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 1px solid $color-border;
+    @include expand-tap-area;
+  }
+
+  &__option.is-active &__radio {
+    border-color: $color-primary;
+  }
+
+  &__radio-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: $color-primary;
+  }
+
+  &__option-body {
+    margin-left: $space-sm;
+    min-width: 0;
+  }
+
+  &__option-label {
+    display: block;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__option-desc {
+    display: block;
+    margin-top: 2px;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- 備考 ----------
+  &__remark {
+    width: 100%;
+    min-height: 60px;
+    padding: $space-xs;
+    border-radius: $radius-sm;
+    background: $color-bg;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__remark-placeholder {
+    color: $color-text-tertiary;
+    font-size: $font-sub;
+  }
+
+  // ---------- 金額 ----------
+  &__amount-row {
+    @include flex(space-between, center);
+    padding: $space-xxs 0;
+  }
+
+  &__amount-label {
+    font-size: $font-sub;
+    color: $color-text-secondary;
+  }
+
+  &__amount-value {
+    font-family: $font-family-number;
+    font-size: $font-sub;
+    color: $color-text;
+
+    &.is-highlight {
+      color: $color-primary;
+    }
+  }
+
+  &__amount-error {
+    font-size: $font-sub;
+    color: $color-danger;
+  }
+
+  &__total {
+    @include flex(space-between, flex-start);
+    margin-top: $space-sm;
+    padding-top: $space-sm;
+    border-top: 1px solid $color-divider;
+  }
+
+  &__total-label {
+    font-size: $font-sub;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+  }
+
+  &__total-values {
+    text-align: right;
+  }
+
+  &__total-cny {
+    font-family: $font-family-number;
+    font-size: $font-title;
+    font-weight: $font-weight-heavy;
+    color: $color-primary;
+  }
+
+  &__total-jpy {
+    display: block;
+    margin-top: 2px;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  &__fx-note {
+    display: block;
+    margin-top: $space-xs;
+    font-size: 10px;
+    line-height: 1.5;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- 固定フッター ----------
+  &__footer-space {
+    height: 72px;
+    @include safe-area-bottom;
+  }
+
+  &__footer {
+    @include flex(space-between, center);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: $space-xs $space-md;
+    background: $color-surface;
+    box-shadow: $shadow-float;
+    @include safe-area-bottom($space-xs);
+  }
+
+  &__footer-total {
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__footer-label {
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    margin-right: $space-xxs;
+  }
+
+  &__footer-value {
+    font-family: $font-family-number;
+    font-size: $font-body + 2px;
+    font-weight: $font-weight-heavy;
+    color: $color-primary;
+  }
+
+  &__footer-jpy {
+    display: block;
+    font-size: 10px;
+    color: $color-text-tertiary;
+  }
+
+  &__submit {
+    @include flex(center, center);
+    flex-shrink: 0;
+    min-width: 140px;
+    height: 44px;
+    padding: 0 $space-lg;
+    border-radius: $radius-pill;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: $font-button;
+    font-weight: $font-weight-heavy;
+
+    &.is-disabled {
+      background: $color-border;
+      color: $color-text-tertiary;
+    }
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+}

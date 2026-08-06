@@ -1,0 +1,164 @@
+.product-card {
+  @include card;
+  position: relative;
+
+  &--hover {
+    transform: scale(0.985);
+    transition: transform 0.12s ease;
+  }
+
+  &.is-sold-out {
+    .product-card__image {
+      opacity: 0.55;
+    }
+  }
+
+  // ---------- media ----------
+  &__media {
+    position: relative;
+    width: 100%;
+    background: $color-divider;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__badge {
+    position: absolute;
+    top: $space-xs;
+    left: $space-xs;
+    padding: 2px 6px;
+    border-radius: $radius-sm;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: 10px;
+    font-weight: $font-weight-heavy;
+    letter-spacing: 0.5px;
+
+    &--sale {
+      background: $color-accent;
+    }
+  }
+
+  &__soldout {
+    @include flex(center, center);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 72px;
+    height: 72px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(31, 35, 32, 0.6);
+    color: $color-text-inverse;
+    font-size: $font-caption;
+  }
+
+  // ---------- body ----------
+  &__body {
+    padding: $space-sm;
+  }
+
+  &__name {
+    display: block;
+    font-size: $font-sub;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+    line-height: 1.35;
+    @include ellipsis-lines(2);
+  }
+
+  &__subtitle {
+    display: block;
+    margin-top: $space-xxs;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    @include ellipsis;
+  }
+
+  &__tags {
+    @include flex(flex-start, center);
+    margin-top: $space-xs;
+    gap: $space-xxs;
+  }
+
+  &__tag {
+    padding: 1px 5px;
+    border-radius: $radius-sm;
+    background: $color-primary-bg;
+    color: $color-primary-dark;
+    font-size: 10px;
+    @include ellipsis;
+    max-width: 96px;
+  }
+
+  &__footer {
+    @include flex(space-between, flex-end);
+    margin-top: $space-xs;
+  }
+
+  &__sales {
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    white-space: nowrap;
+  }
+
+  &__add {
+    @include flex(center, center);
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: $color-primary;
+    // 視覚 28px / タップ 44px
+    @include expand-tap-area;
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+
+  &__add-icon {
+    color: $color-text-inverse;
+    font-size: $font-body;
+    line-height: 1;
+  }
+
+  // ---------- variants ----------
+  &--grid {
+    .product-card__media {
+      height: 168px;
+    }
+  }
+
+  &--compact {
+    width: 132px;
+    flex-shrink: 0;
+
+    .product-card__media {
+      height: 132px;
+    }
+
+    .product-card__body {
+      padding: $space-xs;
+    }
+  }
+
+  &--list {
+    @include flex(flex-start, stretch);
+
+    .product-card__media {
+      width: 110px;
+      height: 110px;
+      flex-shrink: 0;
+    }
+
+    .product-card__body {
+      flex: 1;
+      min-width: 0;
+      @include flex(space-between, stretch, column);
+    }
+  }
+}

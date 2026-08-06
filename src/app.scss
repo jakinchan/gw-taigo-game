@@ -1,0 +1,78 @@
+// グローバルスタイル。ページ固有のものは各ページの .scss に置く。
+
+page {
+  background-color: $color-bg;
+  color: $color-text;
+  font-family: $font-family-base;
+  font-size: $font-body;
+  line-height: 1.5;
+  // 小程序の慣性スクロールを滑らかにする
+  -webkit-overflow-scrolling: touch;
+}
+
+view,
+text,
+image,
+scroll-view,
+button,
+input,
+textarea {
+  box-sizing: border-box;
+}
+
+// 微信の button 既定スタイルを打ち消す（枠線・背景・余白）
+button {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  font-size: inherit;
+  line-height: normal;
+
+  &::after {
+    border: none;
+  }
+}
+
+image {
+  display: block;
+}
+
+// ------------------------------------------------------------
+// 汎用ユーティリティ（乱用しない。3 箇所以上で使うものだけ）
+// ------------------------------------------------------------
+
+.u-ellipsis {
+  @include ellipsis;
+}
+
+.u-ellipsis-2 {
+  @include ellipsis-lines(2);
+}
+
+.u-price {
+  font-family: $font-family-number;
+  color: $color-primary;
+  font-weight: $font-weight-heavy;
+}
+
+// tabBar / 固定フッターに隠れないための下部余白
+.u-safe-bottom {
+  @include safe-area-bottom(0px);
+}
+
+// セクション見出し
+.u-section-title {
+  @include flex(space-between, center);
+  padding: $space-lg $page-padding $space-sm;
+
+  &__text {
+    font-size: $font-title;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__sub {
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+}

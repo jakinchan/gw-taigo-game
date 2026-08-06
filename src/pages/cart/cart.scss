@@ -1,0 +1,251 @@
+.cart {
+  min-height: 100vh;
+  padding: $space-sm $page-padding 0;
+  background: $color-bg;
+
+  // ---------- チェックボックス（フッターと共用） ----------
+  &__check {
+    @include flex(center, center);
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid $color-border;
+    background: $color-surface;
+    @include expand-tap-area;
+
+    &.is-checked {
+      border-color: $color-primary;
+      background: $color-primary;
+    }
+  }
+
+  &__check-mark {
+    color: $color-text-inverse;
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  // ---------- 商品行 ----------
+  &__item {
+    @include flex(flex-start, center);
+    position: relative;
+    padding: $space-sm;
+    margin-bottom: $space-xs;
+    background: $color-surface;
+    border-radius: $radius-md;
+  }
+
+  &__thumb {
+    width: 80px;
+    height: 80px;
+    margin: 0 $space-sm;
+    border-radius: $radius-sm;
+    background: $color-divider;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    display: block;
+    font-size: $font-sub;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+    @include ellipsis-lines(2);
+  }
+
+  &__sku {
+    display: block;
+    margin-top: 2px;
+    font-size: 10px;
+    color: $color-text-tertiary;
+  }
+
+  &__row {
+    @include flex(space-between, flex-end);
+    margin-top: $space-xs;
+  }
+
+  &__price-cny {
+    display: block;
+    font-family: $font-family-number;
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-primary;
+  }
+
+  &__price-jpy {
+    display: block;
+    font-size: 10px;
+    color: $color-text-tertiary;
+  }
+
+  &__stock-warn {
+    display: block;
+    margin-top: $space-xxs;
+    font-size: 10px;
+    color: $color-accent;
+  }
+
+  &__remove {
+    @include flex(center, center);
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    color: $color-text-tertiary;
+    font-size: $font-body;
+
+    &--hover {
+      color: $color-danger;
+    }
+  }
+
+  // ---------- クーポン ----------
+  &__coupon {
+    @include flex(space-between, center);
+    margin-top: $space-sm;
+    padding: $space-xs $space-sm;
+    background: $color-surface;
+    border-radius: $radius-md;
+  }
+
+  &__coupon-input {
+    flex: 1;
+    height: 36px;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__coupon-placeholder {
+    color: $color-text-tertiary;
+    font-size: $font-sub;
+  }
+
+  &__coupon-btn {
+    @include flex(center, center);
+    min-width: 64px;
+    height: 32px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: $font-button;
+    font-weight: $font-weight-bold;
+
+    &.is-disabled {
+      background: $color-border;
+      color: $color-text-tertiary;
+    }
+
+    &--hover {
+      opacity: 0.8;
+    }
+  }
+
+  &__coupon-applied {
+    @include flex(space-between, center);
+    margin-top: $space-xs;
+    padding: $space-xs $space-sm;
+    border-radius: $radius-sm;
+    background: $color-primary-bg;
+  }
+
+  &__coupon-applied-name {
+    font-size: $font-caption;
+    color: $color-primary-dark;
+    @include ellipsis;
+  }
+
+  &__coupon-applied-value {
+    font-size: $font-caption;
+    font-weight: $font-weight-heavy;
+    color: $color-primary-dark;
+  }
+
+  // ---------- 固定フッター ----------
+  &__footer-space {
+    height: 64px;
+    @include safe-area-bottom;
+  }
+
+  &__footer {
+    @include flex(flex-start, center);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: $space-xs $space-sm;
+    background: $color-surface;
+    box-shadow: $shadow-float;
+    @include safe-area-bottom($space-xs);
+  }
+
+  &__footer-all {
+    margin-left: $space-xs;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  &__footer-delete {
+    margin-left: $space-sm;
+    padding: 0 $space-xs;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    @include expand-tap-area;
+  }
+
+  &__footer-total {
+    flex: 1;
+    min-width: 0;
+    margin: 0 $space-xs;
+    text-align: right;
+  }
+
+  &__footer-total-label {
+    font-size: 10px;
+    color: $color-text-tertiary;
+    margin-right: $space-xxs;
+  }
+
+  &__footer-total-value {
+    font-family: $font-family-number;
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-primary;
+  }
+
+  &__footer-total-jpy {
+    display: block;
+    font-size: 10px;
+    color: $color-text-tertiary;
+  }
+
+  &__footer-btn {
+    @include flex(center, center);
+    flex-shrink: 0;
+    min-width: 104px;
+    height: 40px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: $font-button;
+    font-weight: $font-weight-bold;
+
+    &.is-disabled {
+      background: $color-border;
+      color: $color-text-tertiary;
+    }
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+}

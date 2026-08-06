@@ -1,0 +1,38 @@
+.banner {
+  width: 100%;
+
+  &__item {
+    padding: 0 $page-padding;
+  }
+
+  &__inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: $radius-lg;
+    overflow: hidden;
+    background: $color-primary-bg;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+  }
+
+  &__caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: $space-xl $space-md $space-md;
+    // 画像が明るくても文字が読めるように、下方向のグラデーションを敷く
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+  }
+
+  &__caption-text {
+    color: $color-text-inverse;
+    font-size: $font-sub;
+    font-weight: $font-weight-bold;
+    @include ellipsis;
+  }
+}

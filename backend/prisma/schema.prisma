@@ -1,0 +1,367 @@
+// ============================================================
+// health-food-shop データモデル
+//
+// 金額は全て Int（分＝CNY の最小単位）で保持する。
+// Decimal/Float を使うと丸め誤差で決済照合が破綻するため。
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// ユーザー
+// ------------------------------------------------------------
+
+enum MemberLevel {
+  normal
+  silver
+  gold
+  platinum
+}
+
+model User {
+  id       String @id @default(cuid())
+  /// 微信の openid。code2session で取得する。
+  openId   String @unique
+  /// 微信オープンプラットフォームの unionId（複数アプリ横断で同一人物を識別）
+  unionId  String?
+  nickname String @default("")
+  avatar   String @default("")
+
+  memberLevel MemberLevel @default(normal)
+  points      Int         @default(0)
+
+  /// 越境EC の通関申告には購入者本人の実名情報が必要
+  realNameVerified Boolean @default(false)
+  /// 身分証番号は暗号化して保存する（アプリ層で AES-256-GCM）
+  idCardEncrypted  String?
+
+  addresses Address[]
+  orders    Order[]
+  coupons   UserCoupon[]
+  reviews   Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([unionId])
+}
+
+model Address {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  receiverName String
+  phone        String
+  province     String
+  city         String
+  district     String
+  detail       String
+  postalCode   String?
+  isDefault    Boolean @default(false)
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ------------------------------------------------------------
+// 商品
+// ------------------------------------------------------------
+
+model Category {
+  id       String  @id @default(cuid())
+  /// { "zh-CN": "营养补充剂", "ja-JP": "栄養補助食品" }
+  name     Json
+  icon     String  @default("")
+  sort     Int     @default(0)
+  parentId String?
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+
+  @@index([parentId, sort])
+}
+
+model Product {
+  id         String   @id @default(cuid())
+  sku        String   @unique
+  name       Json
+  subtitle   Json     @default("{}")
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  thumbnail String
+  images    String[]
+
+  /// 販売価格（分）
+  priceCny         Int
+  /// 参考価格（分）
+  originalPriceCny Int?
+  /// 原価（分）。粗利計算用で API では返さない。
+  costCny          Int  @default(0)
+
+  description Json @default("{}")
+  ingredients Json @default("{}")
+  /// 効能表記。中国の広告法・食品安全法に抵触しない承認済み文言のみを入れる。
+  benefits    Json @default("{}")
+  usage       Json @default("{}")
+  /// 栄養成分表（GB 28050 準拠）
+  nutrition   Json @default("[]")
+
+  /// 保健食品批准文号（「蓝帽子」）。一般食品は null。
+  approvalNumber String?
+  originCountry  String  @default("JP")
+  /// 越境EC（保税・直邮）対象か
+  isCrossBorder  Boolean @default(true)
+  /// 越境EC 商品 HS コード（通関申告に必要）
+  hsCode         String?
+
+  salesCount  Int   @default(0)
+  rating      Float @default(5)
+  reviewCount Int   @default(0)
+  tags        Json  @default("[]")
+
+  isNew    Boolean @default(false)
+  isOnSale Boolean @default(false)
+  isActive Boolean @default(true)
+
+  batches    StockBatch[]
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId, isActive])
+  @@index([isNew, isActive])
+  @@index([isOnSale, isActive])
+}
+
+/// 在庫ロット。FEFO（First Expired, First Out）で引き当てる。
+model StockBatch {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  batchNo   String
+  /// 賞味期限
+  expiryDate DateTime
+  /// 入庫数
+  quantity   Int
+  /// 注文で確保済み（未出荷）の数
+  reserved   Int      @default(0)
+  /// 保税倉庫コード（越境EC の場合）
+  warehouse  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, batchNo])
+  // FEFO の引き当てクエリがこのインデックスに乗る
+  @@index([productId, expiryDate])
+}
+
+model Review {
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rating  Int
+  content String   @default("")
+  images  String[]
+
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+}
+
+// ------------------------------------------------------------
+// クーポン
+// ------------------------------------------------------------
+
+enum CouponType {
+  amount
+  percent
+  shipping
+}
+
+model Coupon {
+  id           String     @id @default(cuid())
+  code         String     @unique
+  type         CouponType
+  title        Json
+  /// amount なら割引額（分）、percent なら割引率（1-100）
+  value        Int
+  minAmountCny Int        @default(0)
+  /// 発行上限。null は無制限。
+  totalLimit   Int?
+  usedCount    Int        @default(0)
+  startsAt     DateTime   @default(now())
+  expiresAt    DateTime
+
+  userCoupons UserCoupon[]
+
+  createdAt DateTime @default(now())
+}
+
+model UserCoupon {
+  id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  couponId String
+  coupon   Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  used     Boolean  @default(false)
+  usedAt   DateTime?
+  orderId  String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, couponId])
+  @@index([userId, used])
+}
+
+// ------------------------------------------------------------
+// 注文・決済
+// ------------------------------------------------------------
+
+enum OrderStatus {
+  pending_payment
+  pending_shipment
+  shipped
+  completed
+  cancelled
+  refunding
+}
+
+enum ShippingMethod {
+  standard
+  express
+}
+
+model Order {
+  id      String      @id @default(cuid())
+  /// 表示用注文番号。微信支付の out_trade_no にもこれを使う（32 文字以内）。
+  orderNo String      @unique
+  userId  String
+  user    User        @relation(fields: [userId], references: [id])
+  status  OrderStatus @default(pending_payment)
+
+  addressId String
+  address   Address @relation(fields: [addressId], references: [id])
+  /// 住所は変更・削除されうるので、注文時点のスナップショットを保持する
+  addressSnapshot Json
+
+  shippingMethod ShippingMethod @default(standard)
+  trackingNo     String?
+  remark         String?
+
+  // ---- 金額（すべて分） ----
+  subtotalCny    Int
+  shippingFeeCny Int @default(0)
+  discountCny    Int @default(0)
+  taxCny         Int @default(0)
+  totalCny       Int
+
+  // ---- 越境決済の為替スナップショット ----
+  /// 注文確定時のレート（1 CNY = fxRate JPY）。表示の一貫性のために保存する。
+  fxRate           Float
+  fxQuotedAt       DateTime
+  /// 参考の日本円換算額（円）。実際の入金額とは一致しない。
+  totalJpyEstimate Int
+
+  couponCode String?
+
+  items    OrderItem[]
+  payments Payment[]
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+  shippedAt DateTime?
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, status, createdAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  /// 商品名・画像は注文時点のスナップショット（後から商品が変更されても注文票は変わらない）
+  sku       String
+  nameSnapshot Json
+  thumbnail String
+
+  priceCny Int
+  quantity Int
+  /// 引き当てたロット番号（返品・リコール時の追跡に使う）
+  batchNo  String?
+
+  @@index([orderId])
+}
+
+enum PaymentStatus {
+  pending
+  success
+  failed
+  refunded
+}
+
+model Payment {
+  id      String @id @default(cuid())
+  orderId String
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  /// 'wechat_direct' | 'sbps'
+  provider String
+  /// 微信支付の prepay_id
+  prepayId String?
+  /// 微信支付の transaction_id（入金確定後に埋まる）
+  transactionId String? @unique
+
+  status PaymentStatus @default(pending)
+
+  /// 請求額（CNY・分）
+  amountCny Int
+  /// 実際の入金額（JPY・円）。決済代行からの精算通知で埋める。
+  settledJpy Int?
+  /// 精算時に適用された実レート
+  settledFxRate Float?
+
+  /// 支付通知の生ペイロード。照合と障害調査のために保持する。
+  rawNotify Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+/// 為替レートの履歴。表示レートの根拠を後から追跡できるようにする。
+model FxRate {
+  id       String   @id @default(cuid())
+  base     String   @default("CNY")
+  quote    String   @default("JPY")
+  rate     Float
+  source   String
+  quotedAt DateTime @default(now())
+
+  @@index([base, quote, quotedAt])
+}

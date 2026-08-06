@@ -1,0 +1,131 @@
+.settings {
+  min-height: 100vh;
+  padding: $space-sm $page-padding $space-xxl;
+  background: $color-bg;
+
+  &__card {
+    margin-bottom: $space-sm;
+    padding: $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+  }
+
+  &__card-title {
+    display: block;
+    margin-bottom: $space-sm;
+    font-size: $font-sub;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__lang {
+    @include flex(center, center);
+  }
+
+  &__row {
+    @include flex(space-between, center);
+    min-height: 52px;
+    @include hairline(bottom, $color-divider);
+
+    &:last-child::after {
+      display: none;
+    }
+  }
+
+  &__row-body {
+    flex: 1;
+    min-width: 0;
+    padding-right: $space-sm;
+  }
+
+  &__row-label {
+    display: block;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__row-desc {
+    display: block;
+    margin-top: 2px;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  &__row-action {
+    font-size: $font-caption;
+    color: $color-primary;
+    @include expand-tap-area;
+  }
+
+  &__empty {
+    display: block;
+    padding: $space-lg 0;
+    text-align: center;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- クーポン ----------
+  &__coupon {
+    @include flex(flex-start, center);
+    margin-bottom: $space-xs;
+    border-radius: $radius-sm;
+    overflow: hidden;
+    background: $color-primary-bg;
+
+    &.is-used {
+      opacity: 0.45;
+    }
+  }
+
+  &__coupon-value {
+    @include flex(center, center);
+    width: 88px;
+    height: 64px;
+    flex-shrink: 0;
+    background: $color-primary;
+  }
+
+  &__coupon-num {
+    font-family: $font-family-number;
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-text-inverse;
+  }
+
+  &__coupon-body {
+    flex: 1;
+    min-width: 0;
+    padding: 0 $space-sm;
+  }
+
+  &__coupon-title {
+    display: block;
+    font-size: $font-sub;
+    font-weight: $font-weight-bold;
+    color: $color-primary-dark;
+    @include ellipsis;
+  }
+
+  &__coupon-cond {
+    display: block;
+    margin-top: 2px;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  // ---------- サインアウト ----------
+  &__signout {
+    @include flex(center, center);
+    height: 44px;
+    margin-top: $space-md;
+    border-radius: $radius-pill;
+    background: $color-surface;
+    color: $color-danger;
+    font-size: $font-button;
+
+    &--hover {
+      background: $color-divider;
+    }
+  }
+}

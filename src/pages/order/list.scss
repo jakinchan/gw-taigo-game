@@ -1,0 +1,172 @@
+.orders {
+  min-height: 100vh;
+  background: $color-bg;
+
+  &__tabs {
+    width: 100%;
+    background: $color-surface;
+    white-space: nowrap;
+    @include hairline(bottom);
+  }
+
+  &__tabs-inner {
+    display: inline-flex;
+  }
+
+  &__tab {
+    @include flex(center, center);
+    position: relative;
+    min-width: 72px;
+    height: 44px;
+    padding: 0 $space-sm;
+    font-size: $font-sub;
+    color: $color-text-secondary;
+
+    &.is-active {
+      color: $color-primary;
+      font-weight: $font-weight-bold;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 24px;
+        height: 2px;
+        border-radius: 1px;
+        background: $color-primary;
+      }
+    }
+  }
+
+  &__list {
+    padding: $space-sm $page-padding;
+  }
+
+  &__card {
+    margin-bottom: $space-sm;
+    padding: $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+  }
+
+  &__card-head {
+    @include flex(space-between, center);
+    padding-bottom: $space-xs;
+    @include hairline(bottom, $color-divider);
+  }
+
+  &__no {
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    @include ellipsis;
+  }
+
+  &__status {
+    font-size: $font-caption;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    flex-shrink: 0;
+    margin-left: $space-xs;
+
+    &--pending_payment {
+      color: $color-accent;
+    }
+
+    &--cancelled {
+      color: $color-text-tertiary;
+    }
+  }
+
+  &__item {
+    @include flex(flex-start, center);
+    padding: $space-sm 0;
+  }
+
+  &__item-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: $radius-sm;
+    background: $color-divider;
+    flex-shrink: 0;
+  }
+
+  &__item-info {
+    flex: 1;
+    min-width: 0;
+    margin: 0 $space-sm;
+  }
+
+  &__item-name {
+    display: block;
+    font-size: $font-sub;
+    color: $color-text;
+    @include ellipsis-lines(2);
+  }
+
+  &__item-qty {
+    display: block;
+    margin-top: 2px;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  &__item-price {
+    font-family: $font-family-number;
+    font-size: $font-sub;
+    color: $color-text;
+    flex-shrink: 0;
+  }
+
+  &__card-foot {
+    @include flex(space-between, center);
+    flex-wrap: wrap;
+    gap: $space-xs;
+    padding-top: $space-xs;
+    @include hairline(top, $color-divider);
+  }
+
+  &__total {
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  &__total-value {
+    font-family: $font-family-number;
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-primary;
+  }
+
+  &__actions {
+    @include flex(flex-end, center);
+    gap: $space-xs;
+  }
+
+  &__btn {
+    @include flex(center, center);
+    min-width: 84px;
+    height: 32px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    font-size: $font-button;
+
+    &--outline {
+      border: 1px solid $color-border;
+      color: $color-text-secondary;
+    }
+
+    &--primary {
+      background: $color-primary;
+      color: $color-text-inverse;
+      font-weight: $font-weight-bold;
+    }
+  }
+
+  &__tracking {
+    width: 100%;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+}

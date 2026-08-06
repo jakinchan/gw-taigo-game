@@ -1,0 +1,54 @@
+.stepper {
+  @include flex(flex-start, center);
+  border-radius: $radius-sm;
+  overflow: hidden;
+  background: $color-bg;
+
+  &.is-disabled {
+    opacity: 0.5;
+  }
+
+  &__btn {
+    @include flex(center, center);
+    width: 32px;
+    height: 32px;
+    // 見た目は 32px、タップ判定は 44px を確保
+    @include expand-tap-area;
+
+    &.is-disabled .stepper__sign {
+      color: $color-text-tertiary;
+    }
+
+    &--hover {
+      background: $color-divider;
+    }
+  }
+
+  &__sign {
+    font-size: $font-body;
+    line-height: 1;
+    color: $color-text;
+  }
+
+  &__input {
+    width: 44px;
+    height: 32px;
+    text-align: center;
+    font-size: $font-sub;
+    color: $color-text;
+    background: $color-surface;
+  }
+
+  &--sm {
+    .stepper__btn {
+      width: 28px;
+      height: 28px;
+    }
+
+    .stepper__input {
+      width: 38px;
+      height: 28px;
+      font-size: $font-caption;
+    }
+  }
+}

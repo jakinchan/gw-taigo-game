@@ -1,0 +1,67 @@
+.price-tag {
+  @include flex(flex-start, baseline);
+  flex-wrap: wrap;
+
+  &.is-stacked {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  &__main {
+    @include flex(flex-start, baseline);
+    font-family: $font-family-number;
+    color: $color-primary;
+    font-weight: $font-weight-heavy;
+  }
+
+  &__symbol {
+    font-size: $font-caption;
+    margin-right: 1px;
+  }
+
+  &__integer {
+    line-height: 1;
+  }
+
+  &__decimal {
+    font-size: $font-caption;
+  }
+
+  &__original {
+    margin-left: $space-xs;
+    font-size: $font-caption;
+    font-weight: 400;
+    color: $color-text-tertiary;
+    text-decoration: line-through;
+  }
+
+  &__jpy {
+    margin-left: $space-xs;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    white-space: nowrap;
+  }
+
+  &.is-stacked &__jpy {
+    margin-left: 0;
+    margin-top: 2px;
+  }
+
+  // ---- サイズ ----
+  &--sm &__integer {
+    font-size: $font-sub;
+  }
+
+  &--md &__integer {
+    font-size: $font-body + 3px;
+  }
+
+  &--lg &__integer {
+    font-size: 26px;
+  }
+
+  &--lg &__symbol,
+  &--lg &__decimal {
+    font-size: $font-sub;
+  }
+}

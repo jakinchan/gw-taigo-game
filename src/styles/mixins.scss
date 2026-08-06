@@ -1,0 +1,123 @@
+// ============================================================
+// 共通 mixin
+// ============================================================
+
+/// 1行省略
+@mixin ellipsis {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/// 複数行省略
+@mixin ellipsis-lines($lines: 2) {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  text-overflow: ellipsis;
+}
+
+/// Flex ショートハンド
+@mixin flex($justify: flex-start, $align: center, $direction: row) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+}
+
+/// 1物理ピクセルの罫線（Retina 対応）
+@mixin hairline($position: bottom, $color: $color-border) {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    background-color: $color;
+
+    @if $position == bottom {
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 1px;
+      transform: scaleY(0.5);
+    } @else if $position == top {
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 1px;
+      transform: scaleY(0.5);
+    } @else {
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 1px;
+      transform: scaleX(0.5);
+    }
+  }
+}
+
+/// iPhone X 以降のホームインジケータ領域を確保
+@mixin safe-area-bottom($extra: 0px) {
+  padding-bottom: calc(#{$extra} + constant(safe-area-inset-bottom));
+  padding-bottom: calc(#{$extra} + env(safe-area-inset-bottom));
+}
+
+/// タップ領域が視覚サイズより小さい場合に、擬似要素で 44pt を確保する
+@mixin expand-tap-area($min: $tap-target-min) {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: $min;
+    height: $min;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/// メインボタン
+@mixin button-primary {
+  @include flex(center, center);
+  height: 44px;
+  border-radius: $radius-pill;
+  background: $color-primary;
+  color: $color-text-inverse;
+  font-size: $font-button;
+  font-weight: $font-weight-bold;
+
+  &:active {
+    background: $color-primary-dark;
+  }
+
+  &.is-disabled {
+    background: $color-border;
+    color: $color-text-tertiary;
+  }
+}
+
+/// サブボタン（枠線）
+@mixin button-outline {
+  @include flex(center, center);
+  height: 44px;
+  border-radius: $radius-pill;
+  border: 1px solid $color-primary;
+  color: $color-primary;
+  background: transparent;
+  font-size: $font-button;
+  font-weight: $font-weight-bold;
+
+  &:active {
+    background: $color-primary-bg;
+  }
+}
+
+/// カード面
+@mixin card {
+  background: $color-surface;
+  border-radius: $radius-md;
+  box-shadow: $shadow-card;
+  overflow: hidden;
+}

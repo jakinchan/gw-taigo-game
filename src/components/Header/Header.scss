@@ -1,0 +1,102 @@
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: $color-surface;
+  @include hairline(bottom);
+
+  &__nav {
+    @include flex(flex-start, center);
+    padding-left: $page-padding;
+  }
+
+  &__back {
+    @include flex(center, center);
+    width: 32px;
+    height: 32px;
+    margin-left: -8px;
+    margin-right: $space-xxs;
+    @include expand-tap-area;
+  }
+
+  &__back-icon {
+    font-size: 28px;
+    line-height: 1;
+    color: $color-text;
+  }
+
+  &__back--hover {
+    opacity: 0.5;
+  }
+
+  &__brand {
+    @include flex(flex-start, center);
+  }
+
+  &__logo {
+    width: 28px;
+    height: 28px;
+    border-radius: $radius-sm;
+  }
+
+  &__brand-name {
+    margin-left: $space-xs;
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+    @include ellipsis;
+  }
+
+  &__title {
+    font-size: $font-body;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+    @include ellipsis;
+  }
+
+  &__spacer {
+    flex: 1;
+    min-width: $space-xs;
+  }
+
+  &__search-row {
+    padding: $space-xs $page-padding $space-sm;
+  }
+
+  &__search {
+    @include flex(flex-start, center);
+    height: 36px;
+    padding: 0 $space-sm;
+    border-radius: $radius-pill;
+    background: $color-bg;
+  }
+
+  &__search-icon {
+    font-size: $font-caption;
+    margin-right: $space-xs;
+    opacity: 0.6;
+  }
+
+  &__search-input {
+    flex: 1;
+    height: 36px;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__search-placeholder {
+    font-size: $font-sub;
+    color: $color-text-tertiary;
+  }
+}
+
+/**
+ * ヘッダーは position: fixed なので、ページ側で同じ高さの
+ * プレースホルダを置いてコンテンツが潜り込むのを防ぐ。
+ * 高さはページ側で style から渡す。
+ */
+.app-header-placeholder {
+  width: 100%;
+}

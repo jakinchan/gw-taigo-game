@@ -1,0 +1,27 @@
+.empty {
+  @include flex(center, center, column);
+  padding: 64px $page-padding;
+
+  &__icon {
+    font-size: 44px;
+    opacity: 0.4;
+  }
+
+  &__text {
+    margin-top: $space-md;
+    font-size: $font-sub;
+    color: $color-text-tertiary;
+    text-align: center;
+  }
+
+  &__action {
+    @include button-primary;
+    margin-top: $space-xl;
+    min-width: 160px;
+    padding: 0 $space-xl;
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+}

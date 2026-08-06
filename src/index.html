@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no,address=no" />
+    <meta name="theme-color" content="#4caf50" />
+    <title>营养工厂 | 健康食品</title>
+    <script>
+      // H5 ビルド時のみ有効。小程序ビルドではこのファイルは使われない。
+      !(function (e) {
+        function t() {
+          var t = e.document.documentElement
+          var n = t.getBoundingClientRect().width
+          t.style.fontSize = n >= 750 ? '75px' : n / 10 + 'px'
+        }
+        e.addEventListener('resize', t)
+        t()
+      })(window)
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

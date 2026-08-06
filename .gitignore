@@ -1,0 +1,30 @@
+node_modules/
+dist/
+lib/
+.temp/
+.rn_temp/
+.swc/
+coverage/
+
+# 環境変数・秘密情報（絶対にコミットしない）
+.env
+.env.local
+.env.*.local
+backend/.env
+backend/certs/
+*.pem
+*.p12
+apiclient_key.pem
+apiclient_cert.pem
+
+# 微信开发者工具
+project.private.config.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
+npm-debug.log*

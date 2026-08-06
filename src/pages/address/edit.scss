@@ -1,0 +1,102 @@
+.addr-edit {
+  min-height: 100vh;
+  padding: $space-sm $page-padding 0;
+  background: $color-bg;
+
+  &__card {
+    padding: 0 $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+  }
+
+  &__field {
+    @include hairline(bottom, $color-divider);
+
+    &:last-child::after {
+      display: none;
+    }
+
+    &.has-error .addr-edit__input {
+      color: $color-danger;
+    }
+  }
+
+  &__row {
+    @include flex(space-between, center);
+    min-height: 52px;
+  }
+
+  &__label {
+    width: 88px;
+    flex-shrink: 0;
+    font-size: $font-sub;
+    color: $color-text-secondary;
+  }
+
+  &__control {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__input {
+    width: 100%;
+    height: 44px;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__placeholder,
+  &__placeholder-text {
+    font-size: $font-sub;
+    color: $color-text-tertiary;
+  }
+
+  &__picker {
+    @include flex(space-between, center);
+    height: 44px;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__picker-arrow {
+    font-size: $font-title;
+    color: $color-text-tertiary;
+  }
+
+  // エラーは該当フィールドの直下に出す
+  &__error {
+    display: block;
+    padding: 0 0 $space-xs 88px;
+    font-size: $font-caption;
+    color: $color-danger;
+  }
+
+  &__footer-space {
+    height: 64px;
+    @include safe-area-bottom;
+  }
+
+  &__footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: $space-xs $page-padding;
+    background: $color-surface;
+    box-shadow: $shadow-float;
+    @include safe-area-bottom($space-xs);
+  }
+
+  &__save {
+    @include button-primary;
+
+    &.is-disabled {
+      background: $color-border;
+      color: $color-text-tertiary;
+    }
+
+    &--hover {
+      background: $color-primary-dark;
+    }
+  }
+}

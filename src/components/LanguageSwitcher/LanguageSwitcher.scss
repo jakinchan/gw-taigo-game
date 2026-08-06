@@ -1,0 +1,66 @@
+.lang-switcher {
+  &--compact {
+    @include flex(center, center);
+    height: 30px;
+    min-width: 62px;
+    padding: 0 $space-xs;
+    border-radius: $radius-pill;
+    background: $color-primary-bg;
+    // 視覚サイズは 30px でも、タップ判定は 44px を確保する
+    @include expand-tap-area;
+
+    &.is-inverse {
+      background: rgba(255, 255, 255, 0.22);
+
+      .lang-switcher__label,
+      .lang-switcher__globe {
+        color: $color-text-inverse;
+      }
+    }
+  }
+
+  &--hover {
+    opacity: 0.7;
+  }
+
+  &__globe {
+    font-size: $font-caption;
+    margin-right: 2px;
+  }
+
+  &__label {
+    font-size: $font-caption;
+    font-weight: $font-weight-bold;
+    color: $color-primary-dark;
+    white-space: nowrap;
+  }
+
+  &--segmented {
+    @include flex(center, center);
+    padding: 3px;
+    border-radius: $radius-pill;
+    background: $color-divider;
+  }
+
+  &__segment {
+    @include flex(center, center);
+    min-width: 84px;
+    height: 38px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    font-size: $font-sub;
+    color: $color-text-secondary;
+    transition: background-color 0.2s ease;
+
+    &.is-active {
+      background: $color-surface;
+      color: $color-primary-dark;
+      font-weight: $font-weight-bold;
+      box-shadow: $shadow-card;
+    }
+
+    &--hover {
+      opacity: 0.7;
+    }
+  }
+}

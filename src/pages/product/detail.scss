@@ -1,0 +1,368 @@
+.detail {
+  min-height: 100vh;
+  background: $color-bg;
+
+  // ---------- ギャラリー ----------
+  &__gallery {
+    width: 100%;
+    height: 250px; // 仕様の「縦 500px(=250pt) 以内」に収める
+    background: $color-divider;
+  }
+
+  &__gallery-image {
+    width: 100%;
+    height: 100%;
+  }
+
+  // ---------- サマリ ----------
+  &__summary {
+    padding: $space-md $page-padding;
+    background: $color-surface;
+  }
+
+  &__price-row {
+    @include flex(space-between, center);
+  }
+
+  &__jpy-toggle {
+    @include flex(center, center);
+    height: 26px;
+    padding: 0 $space-sm;
+    border-radius: $radius-pill;
+    border: 1px solid $color-border;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    @include expand-tap-area;
+
+    &.is-on {
+      border-color: $color-primary;
+      background: $color-primary-bg;
+      color: $color-primary-dark;
+      font-weight: $font-weight-bold;
+    }
+
+    &--hover {
+      opacity: 0.7;
+    }
+  }
+
+  &__jpy {
+    display: block;
+    margin-top: $space-xxs;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  &__jpy-note {
+    color: $color-text-tertiary;
+  }
+
+  &__name {
+    display: block;
+    margin-top: $space-xs;
+    font-size: $font-title;
+    font-weight: $font-weight-heavy;
+    line-height: 1.35;
+    color: $color-text;
+  }
+
+  &__subtitle {
+    display: block;
+    margin-top: $space-xxs;
+    font-size: $font-sub;
+    color: $color-text-secondary;
+  }
+
+  &__meta {
+    @include flex(flex-start, center);
+    flex-wrap: wrap;
+    margin-top: $space-sm;
+    gap: $space-md;
+  }
+
+  &__meta-item {
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  &__notice {
+    margin-top: $space-sm;
+    padding: $space-xs $space-sm;
+    border-radius: $radius-sm;
+    background: $color-primary-bg;
+  }
+
+  &__notice-tag {
+    display: inline-block;
+    margin-right: $space-xs;
+    padding: 1px 6px;
+    border-radius: $radius-sm;
+    background: $color-primary;
+    color: $color-text-inverse;
+    font-size: 10px;
+    font-weight: $font-weight-bold;
+  }
+
+  &__notice-text {
+    font-size: $font-caption;
+    color: $color-primary-dark;
+    line-height: 1.5;
+  }
+
+  // ---------- 情報ブロック ----------
+  &__block {
+    margin-top: $space-sm;
+    padding: 0 $page-padding;
+    background: $color-surface;
+  }
+
+  &__row {
+    @include flex(space-between, center);
+    min-height: 48px;
+    padding: $space-xs 0;
+    @include hairline(bottom, $color-divider);
+
+    &:last-child::after {
+      display: none;
+    }
+  }
+
+  &__row-label {
+    font-size: $font-sub;
+    color: $color-text-secondary;
+    flex-shrink: 0;
+  }
+
+  &__row-value {
+    font-size: $font-sub;
+    color: $color-text;
+    text-align: right;
+    margin-left: $space-md;
+    @include ellipsis;
+  }
+
+  // ---------- タブ ----------
+  &__tabs {
+    @include flex(space-around, center);
+    margin-top: $space-sm;
+    height: 44px;
+    background: $color-surface;
+    @include hairline(bottom);
+  }
+
+  &__tab {
+    @include flex(center, center);
+    flex: 1;
+    height: 100%;
+    position: relative;
+    font-size: $font-sub;
+    color: $color-text-secondary;
+
+    &.is-active {
+      color: $color-primary;
+      font-weight: $font-weight-bold;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 24px;
+        height: 2px;
+        border-radius: 1px;
+        background: $color-primary;
+      }
+    }
+  }
+
+  &__tab-body {
+    background: $color-surface;
+  }
+
+  &__section {
+    padding: $space-md 0;
+    @include hairline(bottom, $color-divider);
+
+    &:last-child::after {
+      display: none;
+    }
+  }
+
+  &__section-title {
+    display: block;
+    font-size: $font-sub;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+    // 見出しの左に緑のバーを添える
+    padding-left: $space-xs;
+    border-left: 3px solid $color-primary;
+  }
+
+  &__section-body {
+    display: block;
+    margin-top: $space-xs;
+    font-size: $font-sub;
+    line-height: 1.7;
+    color: $color-text-secondary;
+    white-space: pre-wrap;
+  }
+
+  &__disclaimer {
+    margin: $space-md 0;
+    padding: $space-sm;
+    border-radius: $radius-sm;
+    background: $color-bg;
+    font-size: $font-caption;
+    line-height: 1.6;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- レビュー ----------
+  &__reviews {
+    padding: 0 $page-padding;
+  }
+
+  &__review {
+    padding: $space-md 0;
+    @include hairline(bottom, $color-divider);
+  }
+
+  &__review-head {
+    @include flex(flex-start, center);
+  }
+
+  &__review-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: $color-divider;
+  }
+
+  &__review-name {
+    flex: 1;
+    margin-left: $space-xs;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+    @include ellipsis;
+  }
+
+  &__review-stars {
+    font-size: $font-caption;
+    color: $color-accent;
+  }
+
+  &__review-content {
+    display: block;
+    margin-top: $space-xs;
+    font-size: $font-sub;
+    line-height: 1.6;
+    color: $color-text;
+  }
+
+  &__review-images {
+    margin-top: $space-xs;
+    white-space: nowrap;
+  }
+
+  &__review-images-inner {
+    display: inline-flex;
+    gap: $space-xs;
+  }
+
+  &__review-image {
+    width: 80px;
+    height: 80px;
+    border-radius: $radius-sm;
+    background: $color-divider;
+  }
+
+  &__review-date {
+    display: block;
+    margin-top: $space-xs;
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+  }
+
+  // ---------- 関連商品 ----------
+  &__related {
+    display: flex;
+    flex-wrap: wrap;
+    padding: $space-sm ($page-padding - $space-xs / 2);
+    background: $color-bg;
+  }
+
+  &__related-cell {
+    width: 50%;
+    padding: 0 ($space-xs / 2) $space-sm;
+  }
+
+  // ---------- 固定フッター ----------
+  &__footer-space {
+    height: 60px;
+    @include safe-area-bottom;
+  }
+
+  &__footer {
+    @include flex(space-between, center);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    padding: $space-xs $space-sm;
+    background: $color-surface;
+    box-shadow: $shadow-float;
+    @include safe-area-bottom($space-xs);
+  }
+
+  &__footer-icon {
+    @include flex(center, center, column);
+    width: 52px;
+    flex-shrink: 0;
+
+    &--hover {
+      opacity: 0.6;
+    }
+  }
+
+  &__footer-icon-glyph {
+    font-size: $font-body;
+    line-height: 1.2;
+  }
+
+  &__footer-icon-label {
+    font-size: 10px;
+    color: $color-text-tertiary;
+  }
+
+  &__footer-btn {
+    @include flex(center, center);
+    flex: 1;
+    height: 44px;
+    margin-left: $space-xs;
+    border-radius: $radius-pill;
+    font-size: $font-button;
+    font-weight: $font-weight-bold;
+
+    &--outline {
+      border: 1px solid $color-primary;
+      color: $color-primary;
+    }
+
+    &--primary {
+      background: $color-primary;
+      color: $color-text-inverse;
+    }
+
+    &--hover {
+      opacity: 0.8;
+    }
+
+    &.is-disabled {
+      border-color: $color-border;
+      background: $color-border;
+      color: $color-text-tertiary;
+    }
+  }
+}

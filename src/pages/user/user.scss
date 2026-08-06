@@ -1,0 +1,186 @@
+.user {
+  min-height: 100vh;
+  background: $color-bg;
+
+  // ---------- ヒーロー ----------
+  &__hero {
+    padding: 0 $page-padding $space-xxl;
+    background: $color-primary-grad;
+    // 下端を丸めて、下のカードが乗っているように見せる
+    border-radius: 0 0 $radius-lg $radius-lg;
+  }
+
+  &__hero-top {
+    @include flex(flex-end, center);
+    // カプセルボタンと重ならない高さに収める
+    height: 32px;
+  }
+
+  &__profile {
+    @include flex(flex-start, center);
+    margin-top: $space-md;
+  }
+
+  &__avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.7);
+    background: $color-surface;
+    flex-shrink: 0;
+  }
+
+  &__profile-body {
+    flex: 1;
+    min-width: 0;
+    margin-left: $space-sm;
+  }
+
+  &__nickname {
+    display: block;
+    font-size: $font-title;
+    font-weight: $font-weight-heavy;
+    color: $color-text-inverse;
+    @include ellipsis;
+  }
+
+  &__badges {
+    @include flex(flex-start, center);
+    margin-top: $space-xxs;
+    gap: $space-xs;
+  }
+
+  &__level {
+    padding: 1px 8px;
+    border-radius: $radius-pill;
+    background: rgba(255, 255, 255, 0.25);
+    color: $color-text-inverse;
+    font-size: $font-caption;
+  }
+
+  &__points {
+    font-size: $font-caption;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  &__login-tip {
+    display: block;
+    margin-top: $space-xxs;
+    font-size: $font-caption;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  &__login-btn {
+    @include flex(center, center);
+    flex-shrink: 0;
+    height: 32px;
+    padding: 0 $space-md;
+    border-radius: $radius-pill;
+    background: $color-surface;
+    color: $color-primary-dark;
+    font-size: $font-button;
+    font-weight: $font-weight-bold;
+  }
+
+  // ---------- カード ----------
+  &__card {
+    margin: (-$space-lg) $page-padding 0;
+    padding: $space-md;
+    background: $color-surface;
+    border-radius: $radius-md;
+    box-shadow: $shadow-card;
+
+    & + & {
+      margin-top: $space-sm;
+    }
+
+    &--menu {
+      padding: 0 $space-md;
+    }
+  }
+
+  &__card-head {
+    @include flex(space-between, center);
+  }
+
+  &__card-title {
+    font-size: $font-sub;
+    font-weight: $font-weight-heavy;
+    color: $color-text;
+  }
+
+  &__card-more {
+    font-size: $font-caption;
+    color: $color-text-tertiary;
+    @include expand-tap-area;
+  }
+
+  // ---------- 注文ステータス ----------
+  &__orders {
+    @include flex(space-around, center);
+    margin-top: $space-md;
+  }
+
+  &__order-entry {
+    @include flex(center, center, column);
+    flex: 1;
+    padding: $space-xs 0;
+
+    &--hover {
+      opacity: 0.6;
+    }
+  }
+
+  &__order-icon {
+    font-size: 22px;
+    line-height: 1.2;
+  }
+
+  &__order-label {
+    margin-top: $space-xxs;
+    font-size: $font-caption;
+    color: $color-text-secondary;
+  }
+
+  // ---------- メニュー ----------
+  &__menu {
+    @include flex(flex-start, center);
+    // タップ領域を 44pt 以上確保する
+    min-height: 52px;
+    width: 100%;
+    text-align: left;
+    @include hairline(bottom, $color-divider);
+
+    &:last-child::after {
+      display: none;
+    }
+
+    &--hover {
+      background: $color-divider;
+    }
+  }
+
+  &__menu-icon {
+    font-size: $font-body;
+    width: 28px;
+  }
+
+  &__menu-label {
+    flex: 1;
+    font-size: $font-sub;
+    color: $color-text;
+  }
+
+  &__menu-arrow {
+    font-size: $font-title;
+    color: $color-text-tertiary;
+  }
+
+  &__disclaimer {
+    padding: $space-xl $page-padding;
+    font-size: $font-caption;
+    line-height: 1.6;
+    color: $color-text-tertiary;
+    text-align: center;
+  }
+}
