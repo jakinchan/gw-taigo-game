@@ -14,6 +14,7 @@ import { UsersModule } from './users/users.module'
 import { PaymentModule } from './payment/payment.module'
 import { FxModule } from './fx/fx.module'
 import { CouponsModule } from './coupons/coupons.module'
+import { LotteryModule } from './lottery/lottery.module'
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CouponsModule } from './coupons/coupons.module'
     PaymentModule,
     FxModule,
     CouponsModule,
+    LotteryModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

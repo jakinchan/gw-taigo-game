@@ -55,6 +55,9 @@
     "react-refresh": "^0.14.0",
     "sass": "^1.71.1",
     "typescript": "^5.4.2",
-    "webpack": "^5.90.0"
+    "webpack": "5.91.0"
+  },
+  "overrides": {
+    "webpack": "5.91.0"
   }
 }

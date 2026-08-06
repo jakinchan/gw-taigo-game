@@ -224,7 +224,7 @@ export default function Search() {
               <View className='search__grid'>
                 {products.map((product) => (
                   <View key={product.id} className='search__grid-cell'>
-                    <ProductCard product={product} variant='grid' />
+                    <ProductCard product={product} variant='grid2' />
                   </View>
                 ))}
               </View>

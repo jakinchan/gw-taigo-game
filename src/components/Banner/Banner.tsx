@@ -1,6 +1,7 @@
-import { Swiper, SwiperItem, Image, View, Text } from '@tarojs/components'
+import { Swiper, SwiperItem, View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { imageUrl, IMAGE_PRESET } from '@/utils/image'
+import { IMAGE_PRESET } from '@/utils/image'
+import SafeImage from '@/components/SafeImage'
 
 import './Banner.scss'
 
@@ -57,9 +58,11 @@ export default function Banner({ items, interval = 4000, height = 160 }: Props) 
       {items.map((item) => (
         <SwiperItem key={item.id} className='banner__item'>
           <View className='banner__inner' onClick={() => handleTap(item)}>
-            <Image
+            <SafeImage
               className='banner__image'
-              src={imageUrl(item.image, { ...IMAGE_PRESET.banner, height })}
+              src={item.image}
+              options={{ ...IMAGE_PRESET.banner, height }}
+              fallback='banner'
               mode='aspectFill'
               lazyLoad
             />

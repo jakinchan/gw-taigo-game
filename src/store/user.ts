@@ -12,10 +12,15 @@ interface UserState {
   signIn: () => Promise<UserProfile | null>
   /** 起動時にキャッシュ済みトークンがあれば静かに復元する */
   restore: () => Promise<void>
+  /**
+   * 積分だけを更新する。抽選など、積分の増減がサーバ側で確定した直後に
+   * プロフィール全体を取り直さずに表示へ反映させるために使う。
+   */
+  setPoints: (points: number) => void
   signOut: () => void
 }
 
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>((set, get) => ({
   profile: getStorage('userProfile'),
   loading: false,
   isLoggedIn: Boolean(getStorage('token')),
@@ -49,6 +54,14 @@ export const useUserStore = create<UserState>((set) => ({
       // トークン失効。次の認証必須リクエストで自動再ログインされる。
       set({ isLoggedIn: false })
     }
+  },
+
+  setPoints: (points) => {
+    const current = get().profile
+    if (!current) return
+    const next = { ...current, points }
+    setStorage('userProfile', next)
+    set({ profile: next })
   },
 
   signOut: () => {

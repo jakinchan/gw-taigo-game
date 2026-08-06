@@ -1,10 +1,10 @@
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { Product } from '@/types'
 import { useI18n } from '@/services/i18n'
 import { usePreferenceStore } from '@/store/preference'
 import { cnyToJpy, formatJpy, splitCny } from '@/utils/currency'
-import { imageUrl } from '@/utils/image'
+import SafeImage from '@/components/SafeImage'
 
 import './ProductCard.scss'
 
@@ -107,9 +107,10 @@ export default function ProductCard({ product, variant = 'grid3', onClick }: Pro
             )}
           </View>
 
-          <Image
+          <SafeImage
             className='pcard__thumb'
-            src={imageUrl(product.thumbnail, { width: 56, height: 72 })}
+            src={product.thumbnail}
+            options={{ width: 56, height: 72 }}
             mode='aspectFit'
             lazyLoad
           />

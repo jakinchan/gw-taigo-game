@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { View, Text, Image, Input } from '@tarojs/components'
+import { View, Text, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { Coupon } from '@/types'
 import { userApi } from '@/services/api'
@@ -12,8 +12,8 @@ import {
 } from '@/store/cart'
 import { usePreferenceStore } from '@/store/preference'
 import { cnyToJpy, formatCny, formatJpy } from '@/utils/currency'
-import { imageUrl } from '@/utils/image'
 import { toUserMessage } from '@/utils/request'
+import SafeImage from '@/components/SafeImage'
 import QuantityStepper from '@/components/QuantityStepper'
 import Empty from '@/components/Empty'
 
@@ -120,9 +120,9 @@ export default function Cart() {
               {item.selected && <Text className='cart__check-mark'>✓</Text>}
             </View>
 
-            <Image
+            <SafeImage
               className='cart__thumb'
-              src={imageUrl(item.thumbnail, { width: 80, height: 80 })}
+              src={item.thumbnail} options={{ width: 80, height: 80 }}
               mode='aspectFill'
               lazyLoad
               onClick={() =>

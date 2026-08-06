@@ -1,107 +1,168 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { lotteryApi, type DrawResult, type LotteryPrizeSlot } from '@/services/api'
 import { useI18n } from '@/services/i18n'
 import { useUserStore } from '@/store/user'
+import { toUserMessage } from '@/utils/request'
+import Loading from '@/components/Loading'
 
 import './lottery.scss'
 
-interface Prize {
-  id: string
-  label: string
-  icon: string
-}
+/** 中央は抽選ボタンなので賞品を置かない */
+const CENTER_SLOT = 4
 
-/**
- * 3x3 のマス。中央（index 4）は抽選ボタンなので賞品を置かない。
- * 実運用では賞品と当選確率はサーバが持ち、抽選もサーバで行う。
- * クライアントは「どのマスで止めるか」をサーバの結果から逆算するだけ。
- */
-const PRIZES: Prize[] = [
-  { id: 'p50', label: '50 积分', icon: '🪙' },
-  { id: 'free', label: '最近一单免单', icon: '🎫' },
-  { id: 'c15', label: '15 元立减券', icon: '🧧' },
-  { id: 'luck', label: '幸运值 +1', icon: '🍀' },
-  { id: 'p20', label: '20 积分', icon: '🪙' },
-  { id: 'fishoil', label: '鱼油一盒', icon: '💊' },
-  { id: 'c12', label: '12 元满减券', icon: '🧧' },
-  { id: 'kids', label: '儿童益生菌', icon: '🧴' },
-]
-
-/** マスを時計回りに巡る順序（中央の 4 を除く） */
+/** マスを時計回りに巡る順序（中央を除く） */
 const RING = [0, 1, 2, 5, 8, 7, 6, 3]
 
-const COST_PER_DRAW = 100
+/** 賞品タイプごとの見た目 */
+const PRIZE_ICON: Record<string, string> = {
+  points: '🪙',
+  coupon: '🧧',
+  product: '💊',
+  free_order: '🎫',
+  luck: '🍀',
+  none: '🙏',
+}
 
 /**
  * 幸运大抽奖。
  *
- * 演出は「リングを高速に回り、徐々に減速して当選マスで止まる」。
- * 当選結果はサーバが決めるべきもので、クライアントの乱数で決めてはいけない
- * （景品表示・不正防止の両面から）。ここでは API 未接続のため
- * ローカルで抽選しているが、drawFromServer() に差し替える前提の構造にしている。
+ * 当選判定はサーバが行う（backend/src/lottery）。クライアントは
+ * 返ってきた slot まで演出を回して止めるだけで、結果には一切関与しない。
+ * 景品に現物や免単が含まれるため、クライアント乱数では改ざんされる。
  */
 export default function Lottery() {
-  const { t } = useI18n()
-  const profile = useUserStore((s) => s.profile)
+  const { t, tx } = useI18n()
+  const setProfilePoints = useUserStore((s) => s.setPoints)
+
+  const [prizes, setPrizes] = useState<LotteryPrizeSlot[]>([])
+  const [points, setPoints] = useState(0)
+  const [remaining, setRemaining] = useState(0)
+  const [pointsPerDraw, setPointsPerDraw] = useState(100)
 
   const [highlight, setHighlight] = useState(-1)
   const [spinning, setSpinning] = useState(false)
-  const [remaining, setRemaining] = useState(10)
+  const [loading, setLoading] = useState(true)
+
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  /** 再送時に同じ結果を返してもらうための冪等キー */
+  const drawKeyRef = useRef<string | null>(null)
 
-  const points = profile?.points ?? 0
+  const loadStatus = useCallback(async () => {
+    try {
+      const status = await lotteryApi.status()
+      setPoints(status.points)
+      setRemaining(status.remainingToday)
+      setPointsPerDraw(status.pointsPerDraw)
+    } catch (err) {
+      console.error('[lottery] status failed', err)
+    }
+  }, [])
 
-  const spin = () => {
+  useEffect(() => {
+    Promise.all([lotteryApi.board(), lotteryApi.status().catch(() => null)])
+      .then(([board, status]) => {
+        setPrizes(board.prizes)
+        setPointsPerDraw(board.pointsPerDraw)
+        if (status) {
+          setPoints(status.points)
+          setRemaining(status.remainingToday)
+        }
+      })
+      .catch((err) => console.error('[lottery] board failed', err))
+      .finally(() => setLoading(false))
+  }, [])
+
+  // 画面を離れるときにアニメーションのタイマーを止める
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  /** サーバの当選結果まで演出を回して止める */
+  const runAnimation = (targetSlot: number, onDone: () => void) => {
+    const targetRingIndex = RING.indexOf(targetSlot)
+    // 賞品が RING 上に無い（データ不整合）場合は演出を省いて即確定する
+    if (targetRingIndex < 0) {
+      onDone()
+      return
+    }
+
+    const totalSteps = RING.length * 3 + targetRingIndex
+    let step = 0
+
+    const tick = () => {
+      setHighlight(RING[step % RING.length])
+      step += 1
+
+      if (step > totalSteps) {
+        onDone()
+        return
+      }
+      // 終盤ほど間隔を伸ばして減速させる
+      const progress = step / totalSteps
+      timerRef.current = setTimeout(tick, 60 + progress * progress * 260)
+    }
+    tick()
+  }
+
+  const spin = async () => {
     if (spinning) return
 
     if (remaining <= 0) {
       Taro.showToast({ title: t('lottery.noChance'), icon: 'none' })
       return
     }
-    if (points < COST_PER_DRAW) {
+    if (points < pointsPerDraw) {
       Taro.showToast({ title: t('lottery.notEnoughPoints'), icon: 'none' })
       return
     }
 
     setSpinning(true)
 
-    // TODO: サーバ抽選に差し替える（当選結果 → 停止位置を決める）
-    const winningRingIndex = Math.floor(Math.random() * RING.length)
-    // 3 周してから当選位置で止める
-    const totalSteps = RING.length * 3 + winningRingIndex
-
-    let step = 0
-    const tick = () => {
-      setHighlight(RING[step % RING.length])
-      step += 1
-
-      if (step > totalSteps) {
-        setSpinning(false)
-        setRemaining((n) => Math.max(n - 1, 0))
-        const prize = PRIZES[RING[winningRingIndex] > 4 ? RING[winningRingIndex] - 1 : RING[winningRingIndex]]
-        Taro.showModal({
-          title: t('lottery.congrats'),
-          content: prize.label,
-          showCancel: false,
-          confirmText: t('common.confirm'),
-        })
-        return
-      }
-
-      // 終盤ほど間隔を伸ばして減速させる
-      const progress = step / totalSteps
-      const delay = 60 + progress * progress * 260
-      timerRef.current = setTimeout(tick, delay)
+    // 同じ抽選の再送では同じキーを使い、二重に積分を引かれないようにする
+    if (!drawKeyRef.current) {
+      drawKeyRef.current = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
     }
-    tick()
+
+    let result: DrawResult
+    try {
+      result = await lotteryApi.draw(drawKeyRef.current)
+    } catch (err) {
+      console.error('[lottery] draw failed', err)
+      setSpinning(false)
+      // 失敗したキーは破棄して次回は新しい抽選にする
+      drawKeyRef.current = null
+      Taro.showToast({ title: toUserMessage(err, t('common.networkError')), icon: 'none' })
+      void loadStatus()
+      return
+    }
+
+    runAnimation(result.slot, () => {
+      setSpinning(false)
+      setHighlight(result.slot)
+      setPoints(result.pointsBalance)
+      setRemaining(result.remainingToday)
+      setProfilePoints(result.pointsBalance)
+      drawKeyRef.current = null
+
+      Taro.showModal({
+        title: t('lottery.congrats'),
+        content: tx(result.name),
+        showCancel: false,
+        confirmText: t('common.confirm'),
+      })
+    })
   }
 
-  /** グリッドの 9 マス。中央だけ抽選ボタンに差し替える。 */
-  const cells = Array.from({ length: 9 }, (_, i) => {
-    if (i === 4) return null
-    return PRIZES[i > 4 ? i - 1 : i]
-  })
+  if (loading) return <Loading loading variant='page' />
+
+  /** 9 マス。中央だけ抽選ボタンに差し替える。 */
+  const cells = Array.from({ length: 9 }, (_, slot) =>
+    slot === CENTER_SLOT ? null : (prizes.find((p) => p.slot === slot) ?? null),
+  )
 
   return (
     <View className='lottery'>
@@ -111,8 +172,8 @@ export default function Lottery() {
 
       <View className='lottery__board'>
         <View className='lottery__grid'>
-          {cells.map((prize, i) =>
-            prize === null ? (
+          {cells.map((prize, slot) =>
+            slot === CENTER_SLOT ? (
               <View
                 key='draw'
                 className={`lottery__cell lottery__cell--draw ${spinning ? 'is-spinning' : ''}`}
@@ -126,18 +187,20 @@ export default function Lottery() {
               </View>
             ) : (
               <View
-                key={prize.id}
-                className={`lottery__cell ${highlight === i ? 'is-active' : ''}`}
+                key={prize?.id ?? `empty-${slot}`}
+                className={`lottery__cell ${highlight === slot ? 'is-active' : ''}`}
               >
-                <Text className='lottery__cell-icon'>{prize.icon}</Text>
-                <Text className='lottery__cell-label'>{prize.label}</Text>
+                <Text className='lottery__cell-icon'>
+                  {prize ? (PRIZE_ICON[prize.type] ?? '🎁') : ''}
+                </Text>
+                <Text className='lottery__cell-label'>{prize ? tx(prize.name) : ''}</Text>
               </View>
             ),
           )}
         </View>
 
         <Text className='lottery__points'>
-          {t('lottery.myPoints', { points, cost: COST_PER_DRAW })}
+          {t('lottery.myPoints', { points, cost: pointsPerDraw })}
         </Text>
       </View>
 
@@ -162,7 +225,6 @@ export default function Lottery() {
         </View>
       </View>
 
-      {/* 右端の「我的奖品」タブ */}
       <View
         className='lottery__prizes-tab'
         onClick={() => Taro.navigateTo({ url: '/pages/points/points?tab=prize' })}

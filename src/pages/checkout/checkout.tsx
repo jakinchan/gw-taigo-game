@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { View, Text, Image, Textarea } from '@tarojs/components'
+import { View, Text, Textarea } from '@tarojs/components'
 import Taro, { useDidShow, useRouter } from '@tarojs/taro'
 import type { Address, Order, ShippingMethod } from '@/types'
 import { orderApi, userApi } from '@/services/api'
@@ -8,8 +8,8 @@ import { useI18n } from '@/services/i18n'
 import { selectSelectedItems, useCartStore } from '@/store/cart'
 import { usePreferenceStore } from '@/store/preference'
 import { cnyToJpy, formatCny, formatJpy } from '@/utils/currency'
-import { imageUrl } from '@/utils/image'
 import { toUserMessage } from '@/utils/request'
+import SafeImage from '@/components/SafeImage'
 import Loading from '@/components/Loading'
 
 import './checkout.scss'
@@ -188,9 +188,9 @@ export default function Checkout() {
         <Text className='checkout__card-title'>{t('checkout.items')}</Text>
         {displayItems.map((item) => (
           <View key={item.productId} className='checkout__item'>
-            <Image
+            <SafeImage
               className='checkout__item-thumb'
-              src={imageUrl(item.thumbnail, { width: 64, height: 64 })}
+              src={item.thumbnail} options={{ width: 64, height: 64 }}
               mode='aspectFill'
               lazyLoad
             />

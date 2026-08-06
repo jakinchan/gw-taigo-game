@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { View, Text, Image, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import type { Order, OrderStatus } from '@/types'
 import { orderApi } from '@/services/api'
 import { payOrder } from '@/services/wechatPay'
 import { useI18n } from '@/services/i18n'
 import { formatCny } from '@/utils/currency'
-import { imageUrl } from '@/utils/image'
 import { toUserMessage } from '@/utils/request'
+import SafeImage from '@/components/SafeImage'
 import Loading from '@/components/Loading'
 import Empty from '@/components/Empty'
 
@@ -136,9 +136,9 @@ export default function OrderList() {
 
               {order.items.map((item) => (
                 <View key={item.productId} className='orders__item'>
-                  <Image
+                  <SafeImage
                     className='orders__item-thumb'
-                    src={imageUrl(item.thumbnail, { width: 64, height: 64 })}
+                    src={item.thumbnail} options={{ width: 64, height: 64 }}
                     mode='aspectFill'
                     lazyLoad
                   />

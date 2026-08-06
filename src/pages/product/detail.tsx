@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { View, Text, Image, Swiper, SwiperItem, ScrollView } from '@tarojs/components'
+import { View, Text, Swiper, SwiperItem, ScrollView } from '@tarojs/components'
 import Taro, { useRouter, useShareAppMessage } from '@tarojs/taro'
 import type { Product, Review } from '@/types'
 import { productApi } from '@/services/api'
@@ -7,7 +7,8 @@ import { useI18n } from '@/services/i18n'
 import { useCartStore } from '@/store/cart'
 import { usePreferenceStore } from '@/store/preference'
 import { cnyToJpy, formatJpy, getFxRate } from '@/utils/currency'
-import { imageUrl, IMAGE_PRESET } from '@/utils/image'
+import { IMAGE_PRESET } from '@/utils/image'
+import SafeImage from '@/components/SafeImage'
 import PriceTag from '@/components/PriceTag'
 import QuantityStepper from '@/components/QuantityStepper'
 import ProductCard from '@/components/ProductCard'
@@ -124,9 +125,9 @@ export default function ProductDetail() {
       >
         {product.images.map((src, i) => (
           <SwiperItem key={i}>
-            <Image
+            <SafeImage
               className='detail__gallery-image'
-              src={imageUrl(src, IMAGE_PRESET.productDetail)}
+              src={src} options={IMAGE_PRESET.productDetail}
               mode='aspectFill'
               lazyLoad={i > 0}
               onClick={() =>
@@ -294,9 +295,9 @@ export default function ProductDetail() {
               {reviews.map((review) => (
                 <View key={review.id} className='detail__review'>
                   <View className='detail__review-head'>
-                    <Image
+                    <SafeImage
                       className='detail__review-avatar'
-                      src={imageUrl(review.userAvatar, IMAGE_PRESET.avatar)}
+                      src={review.userAvatar} options={IMAGE_PRESET.avatar}
                       mode='aspectFill'
                       lazyLoad
                     />
@@ -308,10 +309,10 @@ export default function ProductDetail() {
                     <ScrollView className='detail__review-images' scrollX showScrollbar={false}>
                       <View className='detail__review-images-inner'>
                         {review.images.map((src) => (
-                          <Image
+                          <SafeImage
                             key={src}
                             className='detail__review-image'
-                            src={imageUrl(src, { width: 80, height: 80 })}
+                            src={src} options={{ width: 80, height: 80 }}
                             mode='aspectFill'
                             lazyLoad
                             onClick={() =>
@@ -334,7 +335,7 @@ export default function ProductDetail() {
           <View className='detail__related'>
             {related.map((item) => (
               <View key={item.id} className='detail__related-cell'>
-                <ProductCard product={item} variant='grid' />
+                <ProductCard product={item} variant='grid2' />
               </View>
             ))}
           </View>

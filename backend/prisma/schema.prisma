@@ -51,6 +51,11 @@ model User {
   orders    Order[]
   coupons   UserCoupon[]
   reviews   Review[]
+  draws     LotteryDraw[]
+
+  /// 当日の抽選回数を数えるための最終抽選日（UTC 日付）
+  lastDrawDate DateTime?
+  drawCountToday Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -446,6 +451,64 @@ model Payment {
   updatedAt DateTime @updatedAt
 
   @@index([orderId])
+}
+
+// ------------------------------------------------------------
+// 抽選（幸运大抽奖）
+// ------------------------------------------------------------
+
+enum PrizeType {
+  points // 積分
+  coupon // クーポン
+  product // 現物
+  free_order // 直近注文の免単
+  luck // 幸運値（次回当選率アップ）
+  none // ハズレ
+}
+
+/// 賞品と当選重み。確率はサーバだけが知る。
+model LotteryPrize {
+  id    String    @id @default(cuid())
+  name  Json
+  type  PrizeType
+  /// points なら積分数、coupon なら Coupon.id、product なら Product.id
+  payload String?
+  /// 抽選盤上の位置（0-8、中央の 4 は除く）
+  slot    Int       @unique
+  /// 当選重み。全賞品の重みの合計に対する比率で当選する。
+  weight  Int       @default(0)
+  /// 在庫。null は無制限。0 になると当選対象から外れる。
+  stock   Int?
+  isActive Boolean  @default(true)
+
+  draws LotteryDraw[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+/// 抽選の実行記録。監査と重複防止のために全件残す。
+model LotteryDraw {
+  id      String @id @default(cuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prizeId String
+  prize   LotteryPrize @relation(fields: [prizeId], references: [id])
+
+  /// 消費した積分
+  pointsCost Int
+  /// 景品を受け取ったか（現物の場合は発送済みか）
+  claimed    Boolean   @default(false)
+  claimedAt  DateTime?
+
+  /// 冪等キー。同じキーの二重抽選を弾く。
+  idempotencyKey String @unique
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 /// 為替レートの履歴。表示レートの根拠を後から追跡できるようにする。

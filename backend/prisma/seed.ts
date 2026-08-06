@@ -191,6 +191,140 @@ async function main() {
     ],
   })
 
+  console.log('seeding HS code tax rates...')
+  /**
+   * 越境EC 綜合税の税率。
+   * 実効税率 = (増値税率 + 消費税率) / (1 - 消費税率) × 優遇係数
+   * 健康食品は消費税 0% なので、増値税 13% → 9.1%、9% → 6.3% になる。
+   * 実運用では税関の公表値に合わせて運用者が管理画面から更新する。
+   */
+  await prisma.hsCodeTaxRate.createMany({
+    data: [
+      {
+        hsCode: '2106909090',
+        name: { 'zh-CN': '其他食品制剂（膳食补充剂）', 'ja-JP': 'その他調製食料品（栄養補助食品）' },
+        tariffRate: 0,
+        vatRate: 0.13,
+        exciseRate: 0,
+        discount: 0.7,
+      },
+      {
+        hsCode: '2106901000',
+        name: { 'zh-CN': '保健食品', 'ja-JP': '保健食品' },
+        tariffRate: 0,
+        vatRate: 0.13,
+        exciseRate: 0,
+        discount: 0.7,
+      },
+      {
+        hsCode: '2202991900',
+        name: { 'zh-CN': '其他非酒精饮料', 'ja-JP': 'その他ノンアルコール飲料' },
+        tariffRate: 0,
+        // 飲料の一部は軽減税率 9%
+        vatRate: 0.09,
+        exciseRate: 0,
+        discount: 0.7,
+      },
+      {
+        hsCode: '3304990090',
+        name: { 'zh-CN': '其他美容品（护肤）', 'ja-JP': 'その他美容用品（スキンケア）' },
+        tariffRate: 0,
+        vatRate: 0.13,
+        // 高価格帯の化粧品は消費税の対象になる
+        exciseRate: 0.15,
+        discount: 0.7,
+      },
+    ],
+  })
+
+  console.log('seeding lottery prizes...')
+  /**
+   * 抽選盤は 3x3 で、中央（slot 4）は抽選ボタンなので賞品を置かない。
+   * weight は当選重み。ここでは合計 1000 になるよう配分している。
+   * 現物（product）は在庫を絞り、当たりすぎないようにする。
+   */
+  await prisma.lotteryPrize.createMany({
+    data: [
+      {
+        slot: 0,
+        name: { 'zh-CN': '50 积分', 'ja-JP': '50 ポイント' },
+        type: 'points',
+        payload: '50',
+        weight: 300,
+      },
+      {
+        slot: 1,
+        name: { 'zh-CN': '最近一单免单', 'ja-JP': '直近のご注文が無料' },
+        type: 'free_order',
+        weight: 1,
+        stock: 10,
+      },
+      {
+        slot: 2,
+        name: { 'zh-CN': '15 元立减券', 'ja-JP': '15元割引クーポン' },
+        type: 'coupon',
+        // seed 後に Coupon.id を差し込む（下で更新する）
+        payload: null,
+        weight: 80,
+      },
+      {
+        slot: 3,
+        name: { 'zh-CN': '幸运值 +1', 'ja-JP': 'ラッキー値 +1' },
+        type: 'luck',
+        weight: 250,
+      },
+      // slot 4 は中央の抽選ボタン
+      {
+        slot: 5,
+        name: { 'zh-CN': '20 积分', 'ja-JP': '20 ポイント' },
+        type: 'points',
+        payload: '20',
+        weight: 300,
+      },
+      {
+        slot: 6,
+        name: { 'zh-CN': '鱼油一盒', 'ja-JP': 'フィッシュオイル 1 箱' },
+        type: 'product',
+        payload: null,
+        weight: 4,
+        stock: 50,
+      },
+      {
+        slot: 7,
+        name: { 'zh-CN': '12 元满减券', 'ja-JP': '12元割引クーポン' },
+        type: 'coupon',
+        payload: null,
+        weight: 60,
+      },
+      {
+        slot: 8,
+        name: { 'zh-CN': '儿童益生菌', 'ja-JP': 'こども用乳酸菌' },
+        type: 'product',
+        payload: null,
+        weight: 5,
+        stock: 30,
+      },
+    ],
+  })
+
+  // クーポン賞品に実際の Coupon.id を紐づける
+  const welcome = await prisma.coupon.findUnique({ where: { code: 'WELCOME30' } })
+  if (welcome) {
+    await prisma.lotteryPrize.updateMany({
+      where: { type: 'coupon', payload: null },
+      data: { payload: welcome.id },
+    })
+  }
+
+  // 現物賞品に実際の Product.id を紐づける
+  const fishOil = await prisma.product.findUnique({ where: { sku: 'HF-MVM-060' } })
+  if (fishOil) {
+    await prisma.lotteryPrize.updateMany({
+      where: { type: 'product', payload: null },
+      data: { payload: fishOil.id },
+    })
+  }
+
   console.log('done.')
 }
 

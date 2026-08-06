@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro, { usePullDownRefresh } from '@tarojs/taro'
 import type { Product } from '@/types'
 import { productApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
 import { formatCny } from '@/utils/currency'
-import { imageUrl } from '@/utils/image'
+import SafeImage from '@/components/SafeImage'
 import Loading from '@/components/Loading'
 import Empty from '@/components/Empty'
 import logo from '@/assets/logo.png'
@@ -63,16 +63,16 @@ export default function NewArrival() {
                 className='newarrival__head'
                 onClick={() => Taro.navigateTo({ url: `/pages/product/detail?id=${product.id}` })}
               >
-                <Image className='newarrival__logo' src={logo} mode='aspectFit' />
+                <SafeImage className='newarrival__logo' src={logo} mode='aspectFit' />
                 <Text className='newarrival__brand'>{t('common.appName')}</Text>
                 {product.isCrossBorder && (
                   <Text className='newarrival__badge'>{t('product.crossBorder')}</Text>
                 )}
               </View>
 
-              <Image
+              <SafeImage
                 className='newarrival__image'
-                src={imageUrl(product.thumbnail, { width: 170, height: 210 })}
+                src={product.thumbnail} options={{ width: 170, height: 210 }}
                 mode='aspectFill'
                 lazyLoad
                 onClick={() => Taro.navigateTo({ url: `/pages/product/detail?id=${product.id}` })}

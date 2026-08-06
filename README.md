@@ -162,6 +162,24 @@ npm run dev:weapp
 npm run typecheck
 ```
 
+> **webpack のバージョンについて**
+> Taro 3.6.34 の `webpack5-runner` は webpack `^5.78.0` を前提にしており、
+> webpack 5.95 以降で `ProgressPlugin` のオプション検証が厳格化された結果、
+> ビルドが `ValidationError` で落ちます。`package.json` の `overrides` で
+> `5.91.0` に固定しているので、外さないでください。
+
+### プレースホルダ画像
+
+商品写真・バナーは CDN 配信ですが、未入稿の段階で壊れた画像が並ぶと
+レイアウトの検証ができません。ブランドカラーの代替画像を同梱しています。
+
+```bash
+node scripts/gen-placeholder-images.js
+```
+
+`components/SafeImage` が読み込み失敗時に自動でこれへ差し替えます。
+1KB 未満の画像はビルド時に base64 としてインライン化されます。
+
 ### 2. バックエンド
 
 ```bash
@@ -207,6 +225,19 @@ CNY は分（`12800` = ¥128.00）、JPY は円で保持します。浮動小数
 引き当ては `updateMany` の条件付き更新による楽観ロックで行い、同時注文で
 在庫がマイナスになるのを防ぎます（`orders.service.ts` の `allocateFefo`）。
 
+### 抽選はサーバが引く
+
+景品に現物と免単（注文の無料化）が含まれるため、当選判定をクライアントに
+置くとパッケージ解析で書き換えられ、金銭的な被害に直結します。
+当選判定・積分の消費・在庫の減算は `backend/src/lottery` の 1 トランザクション
+で完結させ、クライアントは返ってきた `slot` まで演出を回して止めるだけです。
+
+乱数は `crypto.randomInt` を使います。`Math.random` は内部状態を推測すると
+次の出目を予測できるため、景品が絡む抽選には使えません。
+
+通信断による再送で二重に積分を引かないよう、`idempotencyKey` で
+1 回だけ成立させます。
+
 ### 決済の確定は支付通知が正本
 
 `wx.requestPayment` の `success` は「決済ダイアログが正常に閉じた」ことしか
@@ -230,6 +261,12 @@ CNY は分（`12800` = ¥128.00）、JPY は円で保持します。浮動小数
 | GET | `/api/products/:id/reviews` | – | レビュー |
 | GET | `/api/products/:id/related` | – | 関連商品 |
 | GET | `/api/fx/cny-jpy` | – | CNY→JPY 参考レート |
+| GET | `/api/lottery/board` | – | 抽選盤の賞品（確率・在庫は返さない） |
+| GET | `/api/lottery/status` | ✔ | 保有積分と本日の残り回数 |
+| POST | `/api/lottery/draw` | ✔ | 抽選の実行（サーバ抽選・冪等） |
+| GET | `/api/lottery/prizes` | ✔ | 当選履歴 |
+| POST | `/api/users/me/real-name` | ✔ | 実名認証の登録 |
+| GET | `/api/users/me/cross-border-quota` | ✔ | 越境EC の年間購入枠 |
 | POST | `/api/coupons/validate` | ✔ | クーポン検証・割引額算出 |
 | GET | `/api/users/me` | ✔ | プロフィール |
 | PUT | `/api/users/me` | ✔ | プロフィール更新 |
@@ -470,6 +507,22 @@ tabBar は **3 つ**（首页 / 全部商品 / 我的）。カートは tabBar �
 
 - 食品販売には《食品经营许可证》の提出が必要です
 - 越境 EC には対応する資質（跨境电商企業備案など）が必要です
+
+---
+
+## ビルド検証の状況
+
+| 対象 | コマンド | 結果 |
+| --- | --- | --- |
+| ミニプログラム 型チェック | `npm run typecheck` | 通過 |
+| ミニプログラム ビルド | `npm run build:weapp` | 通過（15 ページ / 0.53 MB） |
+| バックエンド Prisma | `npx prisma generate` | 通過 |
+| バックエンド 型チェック | `npx tsc --noEmit` | 通過 |
+| バックエンド ビルド | `npm run build` | 通過 |
+
+DB を用意しないと確認できない部分（マイグレーション適用、シード投入、
+実際の注文フロー）は未検証です。`docker run -p 5432:5432 -e POSTGRES_PASSWORD=password postgres:16`
+などで DB を立ててから `npx prisma migrate dev` を実行してください。
 
 ---
 

@@ -2,6 +2,7 @@ import type {
   Address,
   Category,
   Coupon,
+  LocalizedText,
   Order,
   OrderStatus,
   Paginated,
@@ -190,6 +191,63 @@ export const orderApi = {
 
   cancel: (id: string) =>
     request<Order>(`/orders/${id}/cancel`, { method: 'POST', auth: true }),
+}
+
+// ------------------------------------------------------------
+// 抽選
+// ------------------------------------------------------------
+
+export type PrizeType = 'points' | 'coupon' | 'product' | 'free_order' | 'luck' | 'none'
+
+export interface LotteryPrizeSlot {
+  id: string
+  name: LocalizedText
+  type: PrizeType
+  /** 抽選盤上の位置（0-8、中央の 4 は除く） */
+  slot: number
+}
+
+export interface DrawResult {
+  prizeId: string
+  slot: number
+  name: LocalizedText
+  type: PrizeType
+  pointsCost: number
+  pointsBalance: number
+  remainingToday: number
+}
+
+export const lotteryApi = {
+  /** 賞品一覧。当選確率と在庫はサーバ側に隠されている。 */
+  board: () =>
+    request<{
+      prizes: LotteryPrizeSlot[]
+      pointsPerDraw: number
+      maxDrawsPerDay: number
+    }>('/lottery/board', { cacheTtlMs: 10 * 60 * 1000 }),
+
+  status: () =>
+    request<{ points: number; remainingToday: number; pointsPerDraw: number }>(
+      '/lottery/status',
+      { auth: true },
+    ),
+
+  /**
+   * 抽選の実行。当選判定はサーバが行う。
+   * idempotencyKey は再送時に同じ値を送ること（二重消費の防止）。
+   */
+  draw: (idempotencyKey: string) =>
+    request<DrawResult>('/lottery/draw', {
+      method: 'POST',
+      data: { idempotencyKey },
+      auth: true,
+    }),
+
+  prizes: (page = 1) =>
+    request<Paginated<{ id: string; name: LocalizedText; type: PrizeType; claimed: boolean; createdAt: string }>>(
+      '/lottery/prizes',
+      { data: { page }, auth: true },
+    ),
 }
 
 // ------------------------------------------------------------

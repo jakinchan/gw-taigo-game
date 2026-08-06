@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { View, Text, Image, ScrollView, Button } from '@tarojs/components'
+import { View, Text, ScrollView, Button } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import type { Coupon, OrderStatus } from '@/types'
 import { userApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
 import { useUserStore } from '@/store/user'
 import { formatCny } from '@/utils/currency'
-import { imageUrl, IMAGE_PRESET } from '@/utils/image'
+import { IMAGE_PRESET } from '@/utils/image'
+import SafeImage from '@/components/SafeImage'
 import logo from '@/assets/logo.png'
 
 import './user.scss'
@@ -59,16 +60,18 @@ export default function User() {
     <View className='mine'>
       {/* ---- ブランド行 ---- */}
       <View className='mine__brand' style={{ paddingTop: `${statusBarHeight + 8}px` }}>
-        <Image className='mine__brand-logo' src={logo} mode='aspectFit' />
+        <SafeImage className='mine__brand-logo' src={logo} mode='aspectFit' />
         <Text className='mine__brand-name'>{t('common.appName')}</Text>
         <Text className='mine__brand-reg'>®</Text>
       </View>
 
       {/* ---- プロフィール ---- */}
       <View className='mine__profile'>
-        <Image
+        <SafeImage
           className='mine__avatar'
-          src={profile?.avatar ? imageUrl(profile.avatar, IMAGE_PRESET.avatar) : logo}
+          src={profile?.avatar || logo}
+          options={IMAGE_PRESET.avatar}
+          fallback='avatar'
           mode='aspectFill'
         />
 

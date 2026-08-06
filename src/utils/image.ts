@@ -24,11 +24,31 @@ export function setDevicePixelRatio(value: number): void {
 }
 
 /**
+ * 画像未入稿・読み込み失敗時のプレースホルダ。
+ * 壊れた画像アイコンが並ぶとレイアウトの検証ができないので、
+ * ブランドカラーの無地を敷いておく（scripts/gen-placeholder-images.js で生成）。
+ */
+export const PLACEHOLDER = {
+  banner: require('@/assets/placeholder/banner.png') as string,
+  product: require('@/assets/placeholder/product.png') as string,
+  category: require('@/assets/placeholder/category.png') as string,
+  avatar: require('@/assets/placeholder/avatar.png') as string,
+} as const
+
+export type PlaceholderKind = keyof typeof PLACEHOLDER
+
+/**
  * @example imageUrl(product.thumbnail, { width: 168, height: 168 })
  *   → https://cdn.../a.jpg?x-oss-process=image/resize,w_336,h_336/format,webp/quality,q_80
+ *
+ * @param fallback 空文字だったときに返すプレースホルダの種類
  */
-export function imageUrl(src: string, options: ImageOptions = {}): string {
-  if (!src) return ''
+export function imageUrl(
+  src: string,
+  options: ImageOptions = {},
+  fallback: PlaceholderKind = 'product',
+): string {
+  if (!src) return PLACEHOLDER[fallback]
   // data URI / ローカルアセットは加工しない
   if (src.startsWith('data:') || !src.startsWith('http')) return src
 
