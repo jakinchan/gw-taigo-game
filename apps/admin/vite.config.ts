@@ -18,6 +18,11 @@ export default defineConfig({
     // scripts/dev.js が空きポートを選んで渡してくる
     port: Number(process.env.ADMIN_PORT) || 5200,
     strictPort: false,
+    /**
+     * IPv4 で明示的に listen する。既定の 'localhost' は環境によって
+     * ::1（IPv6）だけに解決され、127.0.0.1 で繋ごうとすると失敗する。
+     */
+    host: '127.0.0.1',
     proxy: {
       /**
        * API へはプロキシ経由で繋ぐ。

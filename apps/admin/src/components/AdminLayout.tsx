@@ -16,6 +16,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
     section: '商品・注文',
     items: [
       { to: '/products', label: '商品管理', icon: '▦' },
+      { to: '/inventory', label: '在庫・ロット', icon: '▤' },
       { to: '/orders', label: '注文管理', icon: '▧' },
     ],
   },
@@ -32,16 +33,21 @@ const NAV: { section: string; items: NavItem[] }[] = [
 const TITLES: Record<string, string> = {
   '/': 'ダッシュボード',
   '/products': '商品管理',
+  '/inventory': '在庫・ロット',
   '/orders': '注文管理',
   '/compliance': '通関・税率',
   '/lottery': '抽選設定',
+}
+
+interface Props {
+  onSignOut: () => void
 }
 
 /**
  * 管理画面のシェル。
  * 商城とは別アプリなので、サイドバー固定の PC レイアウトにしている。
  */
-export default function AdminLayout() {
+export default function AdminLayout({ onSignOut }: Props) {
   const { pathname } = useLocation()
 
   return (
@@ -77,9 +83,9 @@ export default function AdminLayout() {
       <div className='main'>
         <header className='topbar'>
           <div className='topbar__title'>{TITLES[pathname] ?? '管理画面'}</div>
-          <div className='muted' style={{ fontSize: 12 }}>
-            開発環境
-          </div>
+          <button className='btn btn--ghost' onClick={onSignOut}>
+            ログアウト
+          </button>
         </header>
 
         <main className='content'>

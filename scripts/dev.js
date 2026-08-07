@@ -119,18 +119,28 @@ async function waitFor(check, { timeoutMs = 240_000, intervalMs = 1000, label = 
 }
 
 /**
- * 疎通確認。localhost だと Node の fetch が IPv6 (::1) を先に引いて、
- * IPv4 でしか listen していないサーバに繋がらないことがある。
+ * 疎通確認。
+ *
+ * サーバによって IPv4 だけ・IPv6 だけで listen していることがあり、
+ * 片方だけ試すと「起動しているのに繋がらない」と誤判定する。
+ *   - NestJS は :::PORT（IPv6 デュアルスタック）
+ *   - Vite は既定で localhost（環境により ::1 のみ）
+ * 実際に両方試して、どちらかで応答すれば起動とみなす。
  */
 async function httpOk(url) {
-  try {
-    const res = await fetch(url.replace('//localhost:', '//127.0.0.1:'), {
-      signal: AbortSignal.timeout(3000),
-    })
-    return res.status > 0
-  } catch {
-    return false
+  const candidates = url.includes('//localhost:')
+    ? [url.replace('//localhost:', '//127.0.0.1:'), url]
+    : [url]
+
+  for (const candidate of candidates) {
+    try {
+      const res = await fetch(candidate, { signal: AbortSignal.timeout(3000) })
+      if (res.status > 0) return true
+    } catch {
+      /* 次の候補を試す */
+    }
   }
+  return false
 }
 
 // ---------------------------------------------------------------

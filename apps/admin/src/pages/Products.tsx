@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { catalogApi } from '@/api'
+import { adminApi } from '@/api/admin'
 import { useAsync } from '@/hooks/useAsync'
 import { formatCny, tx } from '@/utils/format'
 
@@ -19,7 +20,43 @@ export default function Products() {
     [applied],
   )
 
+  const [error, setError] = useState<string | null>(null)
+
   const apply = () => setApplied({ keyword, categoryId })
+
+  /**
+   * 価格改定。分単位で扱うため、入力された元をそのまま送らない。
+   * 「128.5 元」→ 12850 分に直してから送る。
+   */
+  const editPrice = async (id: string, current: number, name: string) => {
+    const input = window.prompt(`${name} の販売価格（元）`, (current / 100).toFixed(2))
+    if (input === null) return
+
+    const yuan = Number(input)
+    if (!Number.isFinite(yuan) || yuan <= 0) {
+      setError('価格は 0 より大きい数値で入力してください')
+      return
+    }
+
+    setError(null)
+    try {
+      await adminApi.updateProduct(id, { priceCny: Math.round(yuan * 100) })
+      products.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  /** 公開状態の切り替え。非公開にすると商城の一覧から消える。 */
+  const toggleActive = async (id: string, next: boolean) => {
+    setError(null)
+    try {
+      await adminApi.updateProduct(id, { isActive: next })
+      products.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
 
   return (
     <>
@@ -58,13 +95,9 @@ export default function Products() {
         </button>
       </div>
 
-      <div className='notice'>
-        現在は参照のみです。商品の登録・価格改定・在庫調整は、管理者権限付きの
-        <code> /api/admin/products </code>
-        を用意してから接続します（誰でも書ける状態にはできないため）。
-      </div>
-
-      {products.error && <div className='error-banner'>{products.error}</div>}
+      {(products.error || error) && (
+        <div className='error-banner'>{products.error ?? error}</div>
+      )}
 
       {products.loading ? (
         <div className='loading'>読み込み中…</div>
@@ -85,6 +118,7 @@ export default function Products() {
                 <th>区分</th>
                 <th>原産国</th>
                 <th>認可番号</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -112,6 +146,17 @@ export default function Products() {
                   </td>
                   <td>{p.originCountry}</td>
                   <td className='muted'>{p.approvalNumber ?? '一般食品'}</td>
+                  <td style={{ display: 'flex', gap: 6 }}>
+                    <button
+                      className='btn btn--ghost'
+                      onClick={() => editPrice(p.id, p.priceCny, tx(p.name))}
+                    >
+                      価格
+                    </button>
+                    <button className='btn btn--ghost' onClick={() => toggleActive(p.id, false)}>
+                      非公開
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

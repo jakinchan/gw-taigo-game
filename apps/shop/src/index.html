@@ -72,8 +72,25 @@
           docEl.style.fontSize = ROOT_FONT_SIZE * scale + 'px'
         }
 
+        /*
+          このスクリプトは <head> で走るため、初回は body のレイアウトが
+          確定しておらず clientWidth が実際と違うことがある。
+          描画が固まる各段階で測り直す。
+        */
         win.addEventListener('resize', setRootFontSize)
         win.addEventListener('orientationchange', setRootFontSize)
+        win.addEventListener('pageshow', setRootFontSize)
+        win.document.addEventListener('DOMContentLoaded', setRootFontSize)
+        win.addEventListener('load', setRootFontSize)
+
+        /*
+          ブラウザの開発者ツールでの端末切り替えなど、resize が飛ばない
+          サイズ変更もあるので、要素の実寸そのものを監視する。
+        */
+        if (typeof win.ResizeObserver === 'function') {
+          new win.ResizeObserver(setRootFontSize).observe(win.document.documentElement)
+        }
+
         setRootFontSize()
       })(window)
     </script>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { OrderStatus } from '@hfs/shared'
 import { orderApi } from '@/api'
+import { adminApi } from '@/api/admin'
 import { useAsync } from '@/hooks/useAsync'
 import { formatCny, formatDateTime, formatJpy, tx } from '@/utils/format'
 
@@ -25,10 +26,28 @@ const STATUS_STYLE: Record<OrderStatus, string> = {
 
 export default function Orders() {
   const [status, setStatus] = useState<OrderStatus | ''>('')
+  const [error, setError] = useState<string | null>(null)
   const orders = useAsync(
     () => orderApi.list({ status: status || undefined }),
     [status],
   )
+
+  /**
+   * 出荷登録。発送待ちの注文にだけ出す。
+   * 未払いの注文を出荷できると、代金を受け取らずに商品が出ていく。
+   */
+  const ship = async (orderId: string, orderNo: string) => {
+    const trackingNo = window.prompt(`${orderNo} の追跡番号を入力してください`)
+    if (!trackingNo?.trim()) return
+
+    setError(null)
+    try {
+      await adminApi.shipOrder(orderId, trackingNo.trim())
+      orders.reload()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
+    }
+  }
 
   return (
     <>
@@ -44,12 +63,9 @@ export default function Orders() {
         ))}
       </div>
 
-      <div className='notice'>
-        注文一覧は認証が必要です。401 が出る場合は、管理者ログインの実装が必要な状態です
-        （現在は商城と同じ利用者向け API を参照しています）。
-      </div>
-
-      {orders.error && <div className='error-banner'>{orders.error}</div>}
+      {(orders.error || error) && (
+        <div className='error-banner'>{orders.error ?? error}</div>
+      )}
 
       {orders.loading ? (
         <div className='loading'>読み込み中…</div>
@@ -71,6 +87,7 @@ export default function Orders() {
                 <th className='num'>合計</th>
                 <th className='num'>参考(JPY)</th>
                 <th>注文日時</th>
+                <th>操作</th>
               </tr>
             </thead>
             <tbody>
@@ -93,6 +110,17 @@ export default function Orders() {
                   </td>
                   <td className='num muted'>{formatJpy(order.amounts.totalJpyEstimate)}</td>
                   <td className='muted'>{formatDateTime(order.createdAt)}</td>
+                  <td>
+                    {order.status === 'pending_shipment' ? (
+                      <button className='btn' onClick={() => ship(order.id, order.orderNo)}>
+                        出荷登録
+                      </button>
+                    ) : order.trackingNo ? (
+                      <span className='muted'>{order.trackingNo}</span>
+                    ) : (
+                      <span className='muted'>—</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
