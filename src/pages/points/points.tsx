@@ -40,7 +40,8 @@ export default function Points() {
     userApi
       .coupons()
       .then(setCoupons)
-      .catch((err) => console.error('[points] coupons failed', err))
+      // 未ログインなら 401。クーポンを持っていない状態として扱えばよい。
+      .catch(() => setCoupons([]))
   }, [])
 
   const points = profile?.points ?? 0

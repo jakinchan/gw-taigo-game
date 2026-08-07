@@ -1,5 +1,8 @@
 import { useMemo } from 'react'
-import Taro from '@tarojs/taro'
+import { getNavRowHeight, getScreenMetrics } from '@/utils/platform'
+
+/** 検索行の高さ = 上padding 8 + 検索バー 36 + 下padding 12 */
+const SEARCH_ROW_HEIGHT = 8 + 36 + 12
 
 /**
  * カスタムヘッダー（components/BrandHeader）の実高さ。
@@ -12,29 +15,11 @@ export function useHeaderHeight(options: { withSearch?: boolean } = {}): number 
   const { withSearch = true } = options
 
   return useMemo(() => {
-    let statusBarHeight = 20
-    try {
-      statusBarHeight = Taro.getSystemInfoSync().statusBarHeight ?? 20
-    } catch {
-      /* fallthrough */
-    }
-
-    let capsuleHeight = 32
-    let capsuleTop = statusBarHeight + 4
-    try {
-      const rect = Taro.getMenuButtonBoundingClientRect?.()
-      if (rect && rect.height > 0) {
-        capsuleHeight = rect.height
-        capsuleTop = rect.top
-      }
-    } catch {
-      /* fallthrough */
-    }
-
-    const navRowHeight = capsuleHeight + (capsuleTop - statusBarHeight) * 2
-    // 検索行 = padding-top 8 + 検索バー 36 + padding-bottom 12
-    const searchRowHeight = withSearch ? 8 + 36 + 12 : 0
-
-    return statusBarHeight + navRowHeight + searchRowHeight
+    const screen = getScreenMetrics()
+    return (
+      screen.statusBarHeight +
+      getNavRowHeight(screen) +
+      (withSearch ? SEARCH_ROW_HEIGHT : 0)
+    )
   }, [withSearch])
 }

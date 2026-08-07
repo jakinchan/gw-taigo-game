@@ -4,6 +4,7 @@ import Taro, { useRouter } from '@tarojs/taro'
 import type { Product } from '@/types'
 import { productApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
+import { getScreenMetrics } from '@/utils/platform'
 import {
   addSearchHistory,
   clearSearchHistory,
@@ -43,13 +44,7 @@ export default function Search() {
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
 
-  const statusBarHeight = useMemo(() => {
-    try {
-      return Taro.getSystemInfoSync().statusBarHeight ?? 20
-    } catch {
-      return 20
-    }
-  }, [])
+  const statusBarHeight = useMemo(() => getScreenMetrics().statusBarHeight, [])
 
   useEffect(() => {
     setHistory(getSearchHistory())

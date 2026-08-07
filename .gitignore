@@ -1,6 +1,9 @@
 node_modules/
 dist/
 lib/
+
+# scripts/dev.js が起動したプロセスの PID（次回起動時の掃除用）
+scripts/.dev-pids.json
 .temp/
 .rn_temp/
 .swc/

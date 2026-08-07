@@ -49,14 +49,19 @@ export default function Lottery() {
   /** 再送時に同じ結果を返してもらうための冪等キー */
   const drawKeyRef = useRef<string | null>(null)
 
+  /**
+   * 保有積分と残り回数。未ログインなら 401 になるが、
+   * 賞品一覧は誰でも見られるので、失敗しても画面は出したままにする。
+   */
   const loadStatus = useCallback(async () => {
     try {
       const status = await lotteryApi.status()
       setPoints(status.points)
       setRemaining(status.remainingToday)
       setPointsPerDraw(status.pointsPerDraw)
-    } catch (err) {
-      console.error('[lottery] status failed', err)
+    } catch {
+      setPoints(0)
+      setRemaining(0)
     }
   }, [])
 

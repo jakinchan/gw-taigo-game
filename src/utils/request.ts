@@ -64,6 +64,12 @@ export async function login(): Promise<string | null> {
 
   refreshing = (async () => {
     try {
+      /**
+       * H5 やブラウザプレビューには微信のログインが存在せず、
+       * Taro.login は「暂时不支持 API」で reject する。
+       * これは環境の制約であってアプリの障害ではないので、
+       * console.error にはせず、未ログインとして静かに扱う。
+       */
       const { code } = await Taro.login()
       if (!code) return null
 
@@ -81,7 +87,13 @@ export async function login(): Promise<string | null> {
       }
       return null
     } catch (err) {
-      console.error('[request] login failed', err)
+      const errMsg = (err as { errMsg?: string })?.errMsg ?? ''
+      if (errMsg.includes('不支持') || errMsg.includes('not supported')) {
+        // 微信の外（H5 プレビューなど）。未ログインのまま動かす。
+        console.info('[request] WeChat login is unavailable on this platform; staying signed out')
+      } else {
+        console.error('[request] login failed', err)
+      }
       return null
     } finally {
       // 次回の 401 で再試行できるように解放する

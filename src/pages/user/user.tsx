@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import type { Coupon, OrderStatus } from '@/types'
 import { userApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
+import { getScreenMetrics } from '@/utils/platform'
 import { useUserStore } from '@/store/user'
 import { formatCny } from '@/utils/currency'
 import { IMAGE_PRESET } from '@/utils/image'
@@ -40,16 +41,11 @@ export default function User() {
     userApi
       .coupons()
       .then(setCoupons)
-      .catch((err) => console.error('[user] coupons failed', err))
+      // 未ログインなら 401。クーポンを持っていない状態として扱えばよい。
+      .catch(() => setCoupons([]))
   }, [isLoggedIn])
 
-  const statusBarHeight = useMemo(() => {
-    try {
-      return Taro.getSystemInfoSync().statusBarHeight ?? 20
-    } catch {
-      return 20
-    }
-  }, [])
+  const statusBarHeight = useMemo(() => getScreenMetrics().statusBarHeight, [])
 
   const goOrders = (status: OrderStatus | 'refund') => {
     const query = status === 'refund' ? 'status=refunding' : `status=${status}`

@@ -82,7 +82,7 @@ async function main() {
     const created = await prisma.category.create({
       data: {
         name: { 'zh-CN': category.zh, 'ja-JP': category.ja },
-        icon: `/static/categories/${category.key}.webp`,
+        icon: '',
         sort: index,
       },
     })
@@ -100,12 +100,15 @@ async function main() {
           'ja-JP': '日本製・越境直送',
         },
         categoryId: categoryIds.get(product.categoryKey)!,
-        thumbnail: `/static/products/${product.sku}.webp`,
-        images: [
-          `/static/products/${product.sku}-1.webp`,
-          `/static/products/${product.sku}-2.webp`,
-          `/static/products/${product.sku}-3.webp`,
-        ],
+        /**
+         * 画像は空にしておく。
+         * 存在しない CDN パスを入れると開発中ずっと 404 が出続け、
+         * 本物のエラーが埋もれる。空ならクライアントの SafeImage が
+         * プレースホルダを出す（＝「未入稿」の正しい表現）。
+         * 実運用では管理画面から CDN の URL を登録する。
+         */
+        thumbnail: '',
+        images: [],
         priceCny: product.priceCny,
         originalPriceCny: product.originalPriceCny ?? null,
         costCny: Math.round(product.priceCny * 0.55),

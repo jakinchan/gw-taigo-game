@@ -28,7 +28,8 @@ export default function Settings() {
     userApi
       .coupons()
       .then(setCoupons)
-      .catch((err) => console.error('[settings] load coupons failed', err))
+      // 未ログインなら 401。クーポンを持っていない状態として扱えばよい。
+      .catch(() => setCoupons([]))
   }, [isLoggedIn])
 
   // 通知の許可状態は微信の設定が正なので、そこから読む

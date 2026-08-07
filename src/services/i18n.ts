@@ -26,7 +26,7 @@ function resolveInitialLocale(): Locale {
     const systemLanguage = Taro.getSystemInfoSync().language ?? ''
     if (systemLanguage.startsWith('ja')) return 'ja-JP'
   } catch {
-    /* getSystemInfoSync が使えない環境は既定にフォールバック */
+    /* 取得できない環境は既定にフォールバック */
   }
   return DEFAULT_LOCALE
 }

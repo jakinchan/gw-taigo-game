@@ -4,6 +4,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import type { Category, Product } from '@/types'
 import { productApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
+import { getScreenMetrics } from '@/utils/platform'
 import ProductCard from '@/components/ProductCard'
 import Loading from '@/components/Loading'
 import Empty from '@/components/Empty'
@@ -37,13 +38,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
 
-  const statusBarHeight = useMemo(() => {
-    try {
-      return Taro.getSystemInfoSync().statusBarHeight ?? 20
-    } catch {
-      return 20
-    }
-  }, [])
+  const statusBarHeight = useMemo(() => getScreenMetrics().statusBarHeight, [])
 
   useEffect(() => {
     productApi

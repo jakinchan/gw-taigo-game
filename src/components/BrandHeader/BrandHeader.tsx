@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { View, Text, Image, Input } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { useI18n } from '@/services/i18n'
+import { getNavRowHeight, getScreenMetrics } from '@/utils/platform'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import logo from '@/assets/logo.png'
 
@@ -35,28 +36,10 @@ export default function BrandHeader({
   const { t } = useI18n()
 
   const metrics = useMemo(() => {
-    let statusBarHeight = 20
-    try {
-      statusBarHeight = Taro.getSystemInfoSync().statusBarHeight ?? 20
-    } catch {
-      /* fallthrough */
-    }
-
-    let capsuleHeight = 32
-    let capsuleTop = statusBarHeight + 4
-    try {
-      const rect = Taro.getMenuButtonBoundingClientRect?.()
-      if (rect && rect.height > 0) {
-        capsuleHeight = rect.height
-        capsuleTop = rect.top
-      }
-    } catch {
-      /* fallthrough */
-    }
-
+    const screen = getScreenMetrics()
     return {
-      statusBarHeight,
-      brandRowHeight: capsuleHeight + (capsuleTop - statusBarHeight) * 2,
+      statusBarHeight: screen.statusBarHeight,
+      brandRowHeight: getNavRowHeight(screen),
     }
   }, [])
 

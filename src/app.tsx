@@ -50,12 +50,16 @@ function App({ children }: PropsWithChildren) {
 
   useError((error) => {
     /**
-     * 本番では Sentry 等へ送る。
-     * Taro は H5 で reason が undefined の resource error も流してくるので、
-     * 中身が分かる形に整形してから出す（`[object Object]` だと調査できない）。
+     * Taro は H5 で、画像の読み込み失敗のような「reason を持たない
+     * リソースエラー」もここへ流してくる。これをアプリ例外として
+     * 記録すると本物のエラーが埋もれるので落とす。
+     * 画像の失敗は SafeImage がプレースホルダで処理済み。
      */
+    if (error === undefined || error === null) return
+
+    // 本番では Sentry 等へ送る。`[object Object]` だと調査できないので整形する。
     const detail =
-      error && typeof error === 'object'
+      typeof error === 'object'
         ? JSON.stringify(error, Object.getOwnPropertyNames(error as object))
         : String(error)
     console.error('[app] uncaught error:', detail)

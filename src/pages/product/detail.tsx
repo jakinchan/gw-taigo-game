@@ -88,6 +88,17 @@ export default function ProductDetail() {
 
   const soldOut = !product || product.stock <= 0
 
+  /**
+   * ギャラリー画像。未入稿ならサムネイルで代替し、
+   * それも無ければ 1 枚ぶんの枠を残してプレースホルダを見せる。
+   * 空配列のまま Swiper に渡すと、高さだけある白い帯になる。
+   */
+  const galleryImages = useMemo(() => {
+    if (!product) return []
+    if (product.images.length > 0) return product.images
+    return [product.thumbnail ?? '']
+  }, [product])
+
   const handleAddToCart = () => {
     if (!product || soldOut) return
     addToCart(product, quantity)
@@ -124,7 +135,7 @@ export default function ProductDetail() {
         indicatorActiveColor='#ffffff'
         circular
       >
-        {product.images.map((src, i) => (
+        {galleryImages.map((src, i) => (
           <SwiperItem key={i}>
             <SafeImage
               className='detail__gallery-image'
@@ -132,7 +143,7 @@ export default function ProductDetail() {
               mode='aspectFill'
               lazyLoad={i > 0}
               onClick={() =>
-                Taro.previewImage({ current: src, urls: product.images })
+                Taro.previewImage({ current: src, urls: galleryImages })
               }
             />
           </SwiperItem>

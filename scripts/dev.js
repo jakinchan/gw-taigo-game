@@ -37,6 +37,66 @@ const DB_PASSWORD = 'password'
 /** 起動した子プロセス。終了時にまとめて片付ける。 */
 const children = []
 
+/**
+ * 自分が起動したプロセスの PID を残しておくファイル。
+ *
+ * Ctrl+C なら終了処理で片付くが、ターミナルを閉じられたりクラッシュしたりすると
+ * webpack や nest が生き残り、次回の起動でポートを奪い合う。
+ * 「自分が起動したものだけ」を記録しておき、次回はそれだけを片付ける。
+ * 無関係なプロセスを PID の総当たりで殺さないための仕組み。
+ */
+const PID_FILE = path.join(__dirname, '.dev-pids.json')
+
+function recordPid(pid) {
+  if (!pid) return
+  let pids = []
+  try {
+    pids = JSON.parse(fs.readFileSync(PID_FILE, 'utf8'))
+  } catch {
+    /* 初回は存在しない */
+  }
+  pids.push(pid)
+  fs.writeFileSync(PID_FILE, JSON.stringify(pids))
+}
+
+/** 前回の実行が残したプロセスを片付ける */
+function killStaleProcesses() {
+  let pids = []
+  try {
+    pids = JSON.parse(fs.readFileSync(PID_FILE, 'utf8'))
+  } catch {
+    return
+  }
+
+  let killed = 0
+  for (const pid of pids) {
+    try {
+      // シグナル 0 は存在確認だけで何もしない
+      process.kill(pid, 0)
+    } catch {
+      continue // 既に終了している
+    }
+    if (process.platform === 'win32') {
+      // /T で子孫まで落とす。webpack は孫プロセスとして生きるため必須。
+      spawnSync('taskkill', ['/pid', String(pid), '/T', '/F'], { stdio: 'ignore' })
+    } else {
+      try {
+        process.kill(-pid, 'SIGKILL')
+      } catch {
+        try {
+          process.kill(pid, 'SIGKILL')
+        } catch {
+          /* 競合で消えていた */
+        }
+      }
+    }
+    killed++
+  }
+
+  fs.rmSync(PID_FILE, { force: true })
+  if (killed > 0) info(`前回の残りプロセス ${killed} 件を停止`)
+}
+
 // ---------------------------------------------------------------
 // 小物
 // ---------------------------------------------------------------
@@ -79,13 +139,21 @@ function hasCommand(cmd) {
   return run(cmd, ['--version'], { quiet: true }).code === 0
 }
 
-/** そのポートで listen できるか（= 空いているか） */
+/**
+ * そのポートで listen できるか（= 空いているか）。
+ *
+ * host を指定せずに listen することが重要。
+ * '0.0.0.0' を指定すると IPv4 しか見ないが、NestJS や webpack-dev-server は
+ * host 未指定＝ IPv6 のデュアルスタック（:::PORT）で bind する。
+ * IPv4 だけ見て「空き」と判断すると、IPv6 側が塞がっていた場合に
+ * 起動時になって EADDRINUSE で落ちる。実際に使う条件と同じ方法で確かめる。
+ */
 function isPortFree(port) {
   return new Promise((resolve) => {
     const server = net.createServer()
     server.once('error', () => resolve(false))
     server.once('listening', () => server.close(() => resolve(true)))
-    server.listen(port, '0.0.0.0')
+    server.listen(port)
   })
 }
 
@@ -139,6 +207,7 @@ function startProcess(name, cmd, cmdArgs, options = {}) {
     env,
   })
   children.push({ name, child })
+  recordPid(child.pid)
 
   const prefix = color(90, `[${name}]`)
   const pipe = (stream, isErr) => {
@@ -176,6 +245,7 @@ function shutdown() {
       child.kill('SIGTERM')
     }
   }
+  fs.rmSync(PID_FILE, { force: true })
   info(`DB コンテナは動かしたままにする（止める場合: docker stop ${DB_CONTAINER}）`)
   process.exit(0)
 }
@@ -249,7 +319,7 @@ async function startDatabase() {
   return port
 }
 
-function ensureEnv(dbPort, apiPort) {
+function ensureEnv(dbPort, apiPort, h5Port) {
   const envPath = path.join(BACKEND, '.env')
   const examplePath = path.join(BACKEND, '.env.example')
 
@@ -264,7 +334,7 @@ function ensureEnv(dbPort, apiPort) {
     fs.writeFileSync(envPath, env)
   }
 
-  // DB ポートと API ポートは毎回選び直すので、その都度書き戻す
+  // ポートは毎回選び直すので、その都度書き戻す
   let env = fs.readFileSync(envPath, 'utf8')
   if (dbPort) {
     env = env.replace(
@@ -273,25 +343,61 @@ function ensureEnv(dbPort, apiPort) {
     )
   }
   env = env.replace(/^PORT=.*/m, `PORT=${apiPort}`)
-  fs.writeFileSync(envPath, env)
 
+  /**
+   * CORS も H5 のポートに追随させる。
+   * ここを固定にしていると、H5 が別ポートに逃げた瞬間に
+   * ブラウザからの API 呼び出しが全部プリフライトで弾かれる。
+   */
+  if (h5Port) {
+    const origins = [`http://localhost:${h5Port}`, `http://127.0.0.1:${h5Port}`].join(',')
+    env = env.replace(/^CORS_ORIGINS=.*/m, `CORS_ORIGINS=${origins}`)
+  }
+
+  fs.writeFileSync(envPath, env)
   ok('backend/.env を更新')
 }
 
-function prepareDatabase() {
-  info('Prisma クライアントを生成')
-  /**
-   * Windows では直前のプロセスが node_modules/.prisma を掴んだままのことがあり、
-   * 生成が EPERM で落ちる。ハンドルが解放されるのを待って一度だけ再試行する。
-   */
-  let generated = run('npx', ['prisma', 'generate'], { cwd: BACKEND, quiet: true })
-  if (generated.code !== 0) {
-    warn('prisma generate に失敗。ファイルロックの解放を待って再試行する')
-    spawnSync(process.execPath, ['-e', 'setTimeout(()=>{}, 3000)'], { stdio: 'ignore' })
-    generated = run('npx', ['prisma', 'generate'], { cwd: BACKEND, quiet: true })
+/**
+ * Prisma クライアントの再生成が必要か。
+ *
+ * 毎回走らせると、Windows では query engine の DLL が
+ * 実行中の Node プロセスに掴まれていて EPERM で落ちる。
+ * スキーマが生成物より新しいときだけ生成すれば、その競合はほぼ起きない。
+ */
+function needsPrismaGenerate() {
+  const schema = path.join(BACKEND, 'prisma', 'schema.prisma')
+  const client = path.join(BACKEND, 'node_modules', '.prisma', 'client', 'index.js')
+  try {
+    return fs.statSync(schema).mtimeMs > fs.statSync(client).mtimeMs
+  } catch {
+    return true // 生成物が無い（初回）
   }
-  if (generated.code !== 0) {
-    throw new Error(`prisma generate に失敗:\n${generated.stderr || generated.stdout}`)
+}
+
+function prepareDatabase() {
+  if (needsPrismaGenerate()) {
+    info('Prisma クライアントを生成')
+    let generated = run('npx', ['prisma', 'generate'], { cwd: BACKEND, quiet: true })
+
+    if (generated.code !== 0) {
+      // 直前のプロセスがまだ DLL を掴んでいることがあるので、待って一度だけ再試行
+      warn('prisma generate に失敗。ファイルロックの解放を待って再試行する')
+      spawnSync(process.execPath, ['-e', 'setTimeout(()=>{}, 4000)'], { stdio: 'ignore' })
+      generated = run('npx', ['prisma', 'generate'], { cwd: BACKEND, quiet: true })
+    }
+
+    if (generated.code !== 0) {
+      // 既存のクライアントがあるなら、それで動く可能性が高いので止めない
+      if (fs.existsSync(path.join(BACKEND, 'node_modules', '.prisma', 'client', 'index.js'))) {
+        warn('prisma generate に失敗したが、既存のクライアントで続行する')
+        warn('スキーマを変更した場合は、全プロセスを止めてから npx prisma generate を実行すること')
+      } else {
+        throw new Error(`prisma generate に失敗:\n${generated.stderr || generated.stdout}`)
+      }
+    }
+  } else {
+    ok('Prisma クライアントは最新')
   }
 
   info('マイグレーションを適用')
@@ -333,11 +439,21 @@ function hasSeedData() {
 async function main() {
   console.log(color(1, '\n营养工厂 — 開発環境の起動\n'))
 
+  // 先に前回の残骸を片付ける。残っているとポートを奪い合って EADDRINUSE になる。
+  killStaleProcesses()
+
   installDeps()
   const dbPort = await startDatabase()
 
+  /**
+   * ポートは起動より先に全部決めておく。
+   * API を立ててから H5 のポートを決めると、CORS の許可オリジンを
+   * .env に書く時点で H5 のポートが分からず、後追いで直せない。
+   */
   const apiPort = await findFreePort(3100, 'API')
-  ensureEnv(dbPort, apiPort)
+  const h5Port = withH5 ? await findFreePort(10086, 'H5') : null
+
+  ensureEnv(dbPort, apiPort, h5Port)
 
   if (dbPort) prepareDatabase()
 
@@ -350,15 +466,19 @@ async function main() {
   })
 
   const apiUrl = `http://localhost:${apiPort}/api`
-  if (!(await waitFor(() => httpOk(`${apiUrl}/categories`), { label: 'API の起動' }))) {
+  // nest の初回コンパイルは、マシンが混んでいると 2 分を超えることがある
+  if (
+    !(await waitFor(() => httpOk(`${apiUrl}/categories`), {
+      timeoutMs: 240_000,
+      label: 'API の起動',
+    }))
+  ) {
     throw new Error('API が起動しなかった（上のログを確認）')
   }
   ok(`API 起動 → ${apiUrl}`)
 
   // --- H5 ---
-  let h5Port = null
-  if (withH5) {
-    h5Port = await findFreePort(10086, 'H5')
+  if (h5Port) {
     info(`ミニプログラム（H5）をビルド中... 初回は 1〜2 分かかる`)
     startProcess('h5', 'npm', ['run', 'dev:h5'], {
       env: {
