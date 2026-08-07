@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="format-detection" content="telephone=no,address=no" />
+    <meta name="theme-color" content="#4caf50" />
+    <title>营养工厂 | 健康食品</title>
+    <style>
+      /*
+        H5 専用の表示調整。小程序ビルドではこのファイルは使われないので、
+        ここに書いたものは実機の描画に影響しない。
+      */
+      html,
+      body {
+        margin: 0;
+        /* rem スケーリングの前提が崩れるので、横スクロールを発生させない */
+        overflow-x: hidden;
+      }
+
+      /*
+        デスクトップ幅で開いたときは、端末幅のカラムとして中央に置く。
+        transform を当てた要素は position: fixed の containing block になるため、
+        ヘッダー・タブバー・右端のボタンもこのカラム内に収まる。
+      */
+      @media (min-width: 500px) {
+        body {
+          background: #e9ecef;
+        }
+
+        #app {
+          width: 375px;
+          min-height: 100vh;
+          margin: 0 auto;
+          background: #f2f3f5;
+          transform: translateZ(0);
+          box-shadow: 0 0 24px rgba(0, 0, 0, 0.1);
+        }
+      }
+    </style>
+    <script>
+      /**
+       * H5 の rem 基準を設定する（小程序ビルドではこのファイルは使われない）。
+       *
+       * designWidth: 375 のとき postcss-pxtransform は 1px を 1/20 rem に
+       * 変換する（Taro の baseFontSize が 20 のため）。
+       * したがって基準幅 375 で 1px = 1 CSS px にするには root を 20px にする。
+       * ここを 40 にすると全ての寸法がちょうど 2 倍になり、
+       * 文字がカードからはみ出してレイアウトが崩れる。
+       *
+       * 拡大はしない。モバイル前提のレイアウトを画面幅に比例させて
+       * 引き伸ばすと同じく崩れるので、狭い端末（320px 等）でだけ縮める。
+       */
+      !(function (win) {
+        var DESIGN_WIDTH = 375
+        // postcss-pxtransform の rootValue と一致させること
+        var ROOT_FONT_SIZE = 20
+
+        function setRootFontSize() {
+          var docEl = win.document.documentElement
+          /*
+            clientWidth はレイアウトビューポートの幅。
+            getBoundingClientRect().width だと内容がはみ出したときにその幅を拾い、
+            「はみ出す → 文字が大きくなる → さらにはみ出す」の悪循環になる。
+          */
+          var width = docEl.clientWidth || win.innerWidth || DESIGN_WIDTH
+          var scale = Math.min(width, DESIGN_WIDTH) / DESIGN_WIDTH
+          docEl.style.fontSize = ROOT_FONT_SIZE * scale + 'px'
+        }
+
+        win.addEventListener('resize', setRootFontSize)
+        win.addEventListener('orientationchange', setRootFontSize)
+        setRootFontSize()
+      })(window)
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>

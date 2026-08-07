@@ -28,12 +28,27 @@ WeChat ミニプログラム（Taro + React + TypeScript）と NestJS API によ
 
 ## 構成
 
+**用途ごとに 3 つのアプリに分けています。** 商城（買い物する画面）は
+微信小程序とスマホ H5 で同じコードを使い、管理画面は PC 専用の別アプリです。
+共有するのはドメイン型（`packages/shared`）と API だけです。
+
+| アプリ | 対象 | 技術 | 出力 |
+| --- | --- | --- | --- |
+| `apps/shop` | **微信小程序** / スマホ H5 | Taro 3.6 + React 18 | `dist/weapp` / `dist/h5` |
+| `apps/admin` | **PC**（運用担当者） | Vite + React 18 | `dist` |
+| `apps/api` | サーバ | NestJS 10 + Prisma 5 | `dist` |
+| `packages/shared` | 共通 | TypeScript の型のみ | — |
+
+商城と管理画面を分けている理由は、要件が正反対だからです。商城は
+モバイル前提で rem スケーリングを使い、パッケージサイズ 2MB の制限があります。
+管理画面は広い画面に情報を敷き詰めたく、サイズ制限もありません。
+同じビルドに同居させると、どちらの都合も中途半端になります。
+
 | レイヤー | 技術 |
 | --- | --- |
-| ミニプログラム | Taro 3.6 / React 18 / TypeScript 5 / Sass |
-| 状態管理 | zustand（カート・ユーザー・言語・表示設定） |
-| 多言語 | 自前の軽量 i18n（`src/services/i18n.ts`） |
-| API | NestJS 10 / TypeScript / Prisma 5 |
+| 状態管理（商城） | zustand（カート・ユーザー・言語・表示設定） |
+| 多言語（商城） | 自前の軽量 i18n（`apps/shop/src/services/i18n.ts`） |
+| ルーティング（管理） | react-router-dom |
 | DB | PostgreSQL |
 | 決済 | WeChat Pay APIv3 小程序支付（越境収単） |
 
@@ -50,91 +65,54 @@ WeChat ミニプログラム（Taro + React + TypeScript）と NestJS API によ
 
 ```
 .
-├── config/                     # Taro ビルド設定（dev / prod で API_BASE_URL を切替）
-├── scripts/
-│   └── gen-tabbar-icons.js     # tabBar アイコン・ロゴの PNG 生成（依存ゼロ）
-├── src/
-│   ├── app.tsx                 # 起動処理（言語同期・為替取得・セッション復元）
-│   ├── app.config.ts           # ページ登録 / tabBar 定義
-│   ├── app.scss                # グローバルスタイル
-│   ├── index.html              # H5 ビルド用
-│   ├── assets/                 # ロゴ・tabBar アイコン（スクリプトで生成）
-│   ├── components/
-│   │   ├── BrandHeader/        # ブランド行 + 検索バー（カプセルボタン回避込み）
-│   │   ├── Banner/             # キャンペーンバナー（Swiper）
-│   │   ├── QuickEntries/       # 首页のクイック導線 5 つ
-│   │   ├── ChipTabs/           # 横スクロールのカテゴリチップ
-│   │   ├── SideDock/           # 右端の縦フローティングボタン 4 つ
-│   │   ├── ProductCard/        # 商品カード（grid3 / grid2 / compact）
-│   │   ├── PriceTag/           # 価格表示（CNY + JPY 併記）
-│   │   ├── QuantityStepper/    # 数量選択（− 1 ＋）
-│   │   ├── LanguageSwitcher/   # 言語切替（compact / segmented）
-│   │   ├── Loading/            # ローディング（長時間時にキャンセル導線）
-│   │   └── Empty/              # 空状態
-│   ├── hooks/
-│   │   └── useHeaderHeight.ts  # カスタムヘッダーの実高さ計算
-│   ├── locales/
-│   │   ├── zh-CN.ts            # 简体中文（キーの正本）
-│   │   ├── ja-JP.ts            # 日本語（キー欠落は型エラー）
-│   │   └── index.ts            # TranslationKey 型
-│   ├── pages/
-│   │   ├── index/              # 首页（tabBar 1）バナー→5導線→チップ→3カラム
-│   │   ├── products/           # 全部商品（tabBar 2）发货/众筹 + サイドバー + 2カラム
-│   │   ├── user/               # 我的（tabBar 3）3指標 + 券包 + 注文5区分
-│   │   ├── product/            # 商品详情页
-│   │   ├── search/             # 検索（履歴・人気キーワード）
-│   │   ├── cart/               # 购物车
-│   │   ├── checkout/           # 确认订单・決済
-│   │   ├── order/              # 订单列表
-│   │   ├── address/            # 地址管理（一覧・編集）
-│   │   ├── settings/           # 设置（言語・通貨表示）
-│   │   ├── lottery/            # 幸运大抽奖（3x3 ルーレット）
-│   │   ├── points/             # 积分商城（交換・クーポン・签到）
-│   │   ├── consult/            # 加健康顾问（QR コード）
-│   │   └── newarrival/         # 人气新品
-│   ├── services/
-│   │   ├── api.ts              # REST クライアント（キャッシュ TTL を一元管理）
-│   │   ├── wechatPay.ts        # WeChat Pay 連携
-│   │   ├── i18n.ts             # 多言語ストア + フック
-│   │   └── mock.ts             # 開発用モック（本番では未使用）
-│   ├── store/
-│   │   ├── cart.ts             # カート（ローカル永続化 + tabBar バッジ）
-│   │   ├── user.ts             # ユーザーセッション
-│   │   └── preference.ts       # JPY 併記のオン/オフ
-│   ├── styles/
-│   │   ├── variables.scss      # デザイントークン
-│   │   └── mixins.scss         # 共通 mixin
-│   ├── types/index.ts          # ドメイン型（API と 1:1）
-│   └── utils/
-│       ├── currency.ts         # CNY/JPY 換算・整数金額のフォーマット
-│       ├── image.ts            # 画像 CDN の WebP / リサイズ URL 生成
-│       ├── request.ts          # 通信・認証・キャッシュ・エラー正規化
-│       └── storage.ts          # 型付きローカルストレージ
+├── apps/
+│   ├── shop/                   # 商城（微信小程序 / スマホ H5）
+│   │   ├── config/             # Taro ビルド設定
+│   │   ├── project.config.json # 微信開発者ツール（miniprogramRoot: dist/weapp）
+│   │   ├── scripts/            # tabBar アイコン・プレースホルダ画像の生成
+│   │   └── src/
+│   │       ├── app.tsx / app.config.ts
+│   │       ├── pages/          # 首页・全部商品・我的 ほか 15 ページ
+│   │       ├── components/     # BrandHeader / ProductCard / SideDock ほか
+│   │       ├── services/       # api / i18n / wechatPay / mock
+│   │       ├── store/          # cart / user / preference（zustand）
+│   │       ├── locales/        # zh-CN / ja-JP
+│   │       └── utils/          # currency / image / platform / request
+│   │
+│   ├── admin/                  # 管理画面（PC）
+│   │   ├── vite.config.ts      # /api は API へプロキシ（同一オリジンにする）
+│   │   └── src/
+│   │       ├── pages/          # Dashboard / Products / Orders / Compliance / Lottery
+│   │       ├── components/     # AdminLayout（サイドバー固定）
+│   │       ├── api/            # 管理画面用の API クライアント
+│   │       └── styles.css      # PC 用。px をそのまま使う
+│   │
+│   └── api/                    # NestJS
+│       ├── prisma/             # schema.prisma / migrations / seed.ts
+│       ├── scripts/            # e2e-check.ts（業務ロジックの通し検証）
+│       └── src/
+│           ├── auth/           # 微信ログイン → JWT
+│           ├── products/       # 商品・カテゴリ・レビュー
+│           ├── orders/         # 注文（FEFO 在庫引き当て・金額確定）
+│           ├── payment/        # WeChat Pay APIv3・支付通知
+│           ├── customs/        # 通関申告・税率・購入限度額
+│           ├── lottery/        # 抽選（サーバ抽選）
+│           ├── users/ coupons/ fx/
+│           └── common/         # Prisma・暗号化・例外フィルタ
 │
-├── backend/
-│   ├── prisma/
-│   │   ├── schema.prisma       # データモデル
-│   │   └── seed.ts             # 開発用シード
-│   ├── src/
-│   │   ├── main.ts             # 起動（helmet / ValidationPipe / raw body）
-│   │   ├── app.module.ts
-│   │   ├── auth/               # 微信ログイン → JWT
-│   │   ├── products/           # 商品・カテゴリ・レビュー
-│   │   ├── orders/             # 注文（FEFO 在庫引き当て・金額確定）
-│   │   ├── payment/            # WeChat Pay APIv3・支付通知
-│   │   ├── users/              # プロフィール・住所
-│   │   ├── coupons/            # クーポン検証・消し込み
-│   │   ├── fx/                 # CNY→JPY 参考レート
-│   │   └── common/             # Prisma・例外フィルタ・レスポンス整形
-│   └── .env.example
-└── project.config.json
+├── packages/
+│   └── shared/                 # 3 アプリで共有するドメイン型と API 契約
+│
+└── scripts/
+    ├── dev.js                  # 開発環境をまとめて起動
+    └── dev-stop.js
 ```
 
 ---
 
 ## クイックスタート
 
-Docker があれば、これ 1 つで DB・API・画面がすべて立ち上がります。
+Docker があれば、これ 1 つで DB・API・商城・管理画面がすべて立ち上がります。
 
 ```bash
 npm run dev
@@ -142,28 +120,39 @@ npm run dev
 
 やっていること:
 
-1. 依存のインストール（`node_modules` が無ければ）
+1. 依存のインストール（npm workspaces でルートに一括）
 2. PostgreSQL を Docker で起動（**空きポートを自動で選ぶ**）
-3. `backend/.env` の生成（秘密鍵はランダム。既存があれば秘密鍵は温存）
+3. `apps/api/.env` の生成（秘密鍵はランダム。既存があれば秘密鍵は温存）
 4. `prisma generate` → `migrate deploy` → シード投入（投入済みならスキップ）
-5. API と H5 dev server を起動し、応答するまで待つ
+5. API・商城(H5)・管理画面を起動し、応答するまで待つ
 
-完了すると URL が表示されます。`Ctrl+C` で API と H5 が止まります
+完了すると URL が表示されます。`Ctrl+C` で各サーバが止まります
 （DB コンテナは次回すぐ使えるよう動かしたままにします）。
 
 | コマンド | 用途 |
 | --- | --- |
-| `npm run dev` | DB + API + 画面（H5） |
+| `npm run dev` | DB + API + 商城(H5) + 管理画面(PC) |
+| `npm run dev:shop` | DB + API + 商城のみ |
+| `npm run dev:admin` | DB + API + 管理画面のみ |
 | `npm run dev:api` | API のみ（微信開発者ツールで確認する場合） |
 | `npm run dev:fresh` | DB を作り直してシードから入れ直す |
 | `npm run dev:stop` | DB コンテナを停止（データは残る） |
 | `npm run dev:stop -- --purge` | DB コンテナを削除（データも消える） |
 
+### 微信小程序で確認する
+
+```bash
+npm run build:weapp
+```
+
+微信開発者ツールで **`apps/shop/dist/weapp`** を開きます。
+`apps/shop/project.config.json` の `appid` を自分の AppID に差し替えてください。
+
 **ポートは固定していません。** 開発機には既に PostgreSQL が動いていたり、
 3000 番が別プロジェクトに使われていたりするのが普通で、固定すると毎回そこで
-詰まります。空きを探して `backend/.env` と H5 のビルド定数へ自動で反映します。
+詰まります。空きを探して `apps/api/.env` と H5 のビルド定数へ自動で反映します。
 
-Docker が無い場合は `backend/.env` の `DATABASE_URL` を自分で設定してください。
+Docker が無い場合は `apps/api/.env` の `DATABASE_URL` を自分で設定してください。
 
 ---
 
@@ -178,7 +167,7 @@ npm install
 tabBar アイコンとロゴは Git 管理下にありますが、作り直す場合は次のコマンドで再生成できます。
 
 ```bash
-node scripts/gen-tabbar-icons.js
+node apps/shop/scripts/gen-tabbar-icons.js
 ```
 
 開発ビルド（`dist/weapp/` に出力され、微信開発者ツールで開く）:
@@ -213,16 +202,16 @@ npm run typecheck
 レイアウトの検証ができません。ブランドカラーの代替画像を同梱しています。
 
 ```bash
-node scripts/gen-placeholder-images.js
+node apps/shop/scripts/gen-placeholder-images.js
 ```
 
-`components/SafeImage` が読み込み失敗時に自動でこれへ差し替えます。
+`apps/shop/src/components/SafeImage` が読み込み失敗時に自動でこれへ差し替えます。
 1KB 未満の画像はビルド時に base64 としてインライン化されます。
 
 ### 2. バックエンド
 
 ```bash
-cd backend
+cd apps/api
 npm install
 cp .env.example .env      # 値を埋める
 npx prisma migrate dev --name init
@@ -234,7 +223,7 @@ API は `http://localhost:3000/api`、Swagger は `http://localhost:3000/api/doc
 
 ### 3. バックエンドなしで画面だけ確認する
 
-`NODE_ENV=development` のとき、商品系 API が失敗すると `src/services/mock.ts` の
+`NODE_ENV=development` のとき、商品系 API が失敗すると `apps/shop/src/services/mock.ts` の
 データにフォールバックします。API サーバを立てずに UI を確認できます。
 本番ビルドではフォールバックせずエラーになります（偽の在庫・価格を表示しないため）。
 
@@ -262,13 +251,13 @@ CNY は分（`12800` = ¥128.00）、JPY は円で保持します。浮動小数
 「実際に出荷されるロット」のものです。
 
 引き当ては `updateMany` の条件付き更新による楽観ロックで行い、同時注文で
-在庫がマイナスになるのを防ぎます（`orders.service.ts` の `allocateFefo`）。
+在庫がマイナスになるのを防ぎます（`apps/api/src/orders/orders.service.ts` の `allocateFefo`）。
 
 ### 抽選はサーバが引く
 
 景品に現物と免単（注文の無料化）が含まれるため、当選判定をクライアントに
 置くとパッケージ解析で書き換えられ、金銭的な被害に直結します。
-当選判定・積分の消費・在庫の減算は `backend/src/lottery` の 1 トランザクション
+当選判定・積分の消費・在庫の減算は `apps/api/src/lottery` の 1 トランザクション
 で完結させ、クライアントは返ってきた `slot` まで演出を回して止めるだけです。
 
 乱数は `crypto.randomInt` を使います。`Math.random` は内部状態を推測すると
@@ -356,7 +345,7 @@ CNY は分（`12800` = ¥128.00）、JPY は円で保持します。浮動小数
 この前提を守るため、実装は以下のようになっています。
 
 - API に渡す金額は常に CNY の「分」（`amount.total`, `currency: 'CNY'`）
-- JPY 換算は表示専用（`src/utils/currency.ts` / `backend/src/fx/`）
+- JPY 換算は表示専用（`apps/shop/src/utils/currency.ts` / `apps/api/src/fx/`）
 - 注文時のレートを `Order.fxRate` に固定保存し、後から注文履歴を見ても表示がブレない
 - 為替 API が前回比 ±20% を超えるレートを返した場合は採用しない（異常値対策）
 - UI には常に「汇率仅供参考，以实际结算为准 / 為替レートは参考値です」を併記
@@ -486,7 +475,7 @@ tabBar は **3 つ**（首页 / 全部商品 / 我的）。カートは tabBar �
 
 ### まだ実装が必要な箇所
 
-- **支付通知の署名検証**：`payment.controller.ts` にコメントで手順を記載していますが、
+- **支付通知の署名検証**：`apps/api/src/payment/payment.controller.ts` にコメントで手順を記載していますが、
   `/v3/certificates` からのプラットフォーム証明書取得とキャッシュ、
   証明書ローテーションへの追随は未実装です。**本番前に必ず実装してください**
 - 身分証番号の AES-256-GCM 暗号化（スキーマは用意済み、暗号化処理は未実装）
@@ -534,7 +523,7 @@ tabBar は **3 つ**（首页 / 全部商品 / 我的）。カートは tabBar �
 - 年間 26,000 元・1 回 5,000 元の購入限度額があります（**本リポジトリでは未実装**）
 - 海关総署への注文・決済・物流の三伝票の申告が必要です（`CUSTOMS_*` 環境変数は枠のみ）
 - 跨境电商综合税の税率は品目（HS コード）ごとに異なります。
-  `orders.service.ts` の `CROSS_BORDER_TAX_RATE` は概算値なので、
+  `apps/api/src/orders/orders.service.ts` の `CROSS_BORDER_TAX_RATE` は概算値なので、
   商品ごとの税率テーブルに置き換えてください
 
 **個人情報**
@@ -558,11 +547,11 @@ tabBar は **3 つ**（首页 / 全部商品 / 我的）。カートは tabBar �
 | バックエンド Prisma | `npx prisma generate` / `migrate dev` | 通過 |
 | バックエンド 型チェック | `npx tsc --noEmit` | 通過 |
 | バックエンド ビルド | `npm run build` | 通過 |
-| **業務ロジックの通し検証** | `cd backend && npm run e2e` | **42 件すべて通過** |
+| **業務ロジックの通し検証** | `npm run e2e` | **42 件すべて通過** |
 
 ### 通し検証（e2e）が確認していること
 
-`backend/scripts/e2e-check.ts` が、起動中の API に対して実際の HTTP で確認します。
+`apps/api/scripts/e2e-check.ts` が、起動中の API に対して実際の HTTP で確認します。
 
 - 認証: JWT でのアクセス、トークン無しは 401、他人の注文 ID は 404
 - 金額: 小計が DB 価格と一致、送料の閾値、HS コード別の綜合税（9.1%）、合計の内訳
@@ -582,10 +571,10 @@ tabBar は **3 つ**（首页 / 全部商品 / 我的）。カートは tabBar �
 docker run -d --name hfs-postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=health_food_shop -p 55432:5432 postgres:16-alpine
 ```
 
-`backend/.env` の `DATABASE_URL` をこのポートに合わせ、次を実行します。
+`apps/api/.env` の `DATABASE_URL` をこのポートに合わせ、次を実行します。
 
 ```bash
-cd backend && npx prisma migrate dev && npm run seed && npm run start:dev
+npm run dev
 ```
 
 別のターミナルでミニプログラムの H5 版を起動すると、ブラウザで画面を確認できます。

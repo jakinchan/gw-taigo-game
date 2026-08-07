@@ -1,20 +1,20 @@
 node_modules/
 dist/
 lib/
-
-# scripts/dev.js が起動したプロセスの PID（次回起動時の掃除用）
-scripts/.dev-pids.json
 .temp/
 .rn_temp/
 .swc/
 coverage/
 
+# scripts/dev.js が起動したプロセスの PID（次回起動時の掃除用）
+scripts/.dev-pids.json
+
 # 環境変数・秘密情報（絶対にコミットしない）
 .env
 .env.local
 .env.*.local
-backend/.env
-backend/certs/
+apps/api/.env
+apps/api/certs/
 *.pem
 *.p12
 apiclient_key.pem

@@ -1,0 +1,427 @@
+/*
+  管理画面のスタイル。PC 前提なので、商城（モバイル・rem スケーリング）とは
+  完全に別系統。ここでは px をそのまま使う。
+*/
+
+:root {
+  --primary: #2b5ce6;
+  --primary-dark: #1f47bd;
+  --primary-bg: #eaf1ff;
+  --text: #1a1a1a;
+  --text-secondary: #5f6368;
+  --text-tertiary: #9aa0a6;
+  --border: #e6e8eb;
+  --surface: #ffffff;
+  --bg: #f5f6f8;
+  --danger: #e5372e;
+  --warning: #ff8f00;
+  --success: #17a97c;
+
+  --sidebar-width: 208px;
+  --header-height: 56px;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans SC', 'Noto Sans JP', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------- レイアウト ---------- */
+
+.layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100%;
+}
+
+.sidebar {
+  background: #1f2430;
+  color: #c9cdd6;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--header-height);
+  padding: 0 16px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar__brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--primary);
+  font-size: 13px;
+}
+
+.sidebar__section {
+  padding: 14px 16px 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: #6f7686;
+  text-transform: uppercase;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.sidebar__link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+.sidebar__link.is-active {
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar__foot {
+  margin-top: auto;
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: #6f7686;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.content {
+  padding: 20px 24px 40px;
+  min-width: 0;
+}
+
+/* ---------- 部品 ---------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.card + .card {
+  margin-top: 16px;
+}
+
+.card__title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.stat__label {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.stat__value {
+  margin-top: 6px;
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__hint {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.input,
+.select {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text);
+  min-width: 180px;
+}
+
+.input:focus,
+.select:focus {
+  outline: 2px solid var(--primary-bg);
+  border-color: var(--primary);
+}
+
+.btn {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--primary-dark);
+}
+
+.btn--ghost {
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.btn--ghost:hover {
+  background: var(--bg);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------- テーブル ---------- */
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: #fafbfc;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.table .wrap {
+  white-space: normal;
+  max-width: 260px;
+}
+
+/* ---------- バッジ・注記 ---------- */
+
+.badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+}
+
+.badge--warn {
+  background: #fff3e0;
+  color: #b35c00;
+}
+
+.badge--danger {
+  background: #fdecea;
+  color: #a3211a;
+}
+
+.badge--ok {
+  background: #e6f7f1;
+  color: #0e7a58;
+}
+
+.badge--muted {
+  background: #eef0f2;
+  color: var(--text-secondary);
+}
+
+.muted {
+  color: var(--text-tertiary);
+}
+
+.empty,
+.loading {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+.error-banner {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid #f3c6c2;
+  border-radius: 6px;
+  background: #fdecea;
+  color: #a3211a;
+  font-size: 13px;
+}
+
+.notice {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border: 1px solid #ffe0a3;
+  border-radius: 6px;
+  background: #fff8e8;
+  color: #7a5300;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* ---------- ログイン ---------- */
+
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+.login__box {
+  width: 340px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.login__title {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.login__sub {
+  margin: 0 0 20px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.login__field {
+  margin-bottom: 12px;
+}
+
+.login__field label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.login__field .input {
+  width: 100%;
+  min-width: 0;
+}
+
+.login .btn {
+  width: 100%;
+  height: 36px;
+  margin-top: 6px;
+}

@@ -62,6 +62,8 @@ const config: UserConfigExport = {
   },
   alias: {
     '@': require('path').resolve(__dirname, '..', 'src'),
+    // モノレポの共有型。管理画面・API と同じ定義を使う。
+    '@hfs/shared': require('path').resolve(__dirname, '..', '..', '..', 'packages', 'shared', 'src'),
   },
   copy: {
     patterns: [],

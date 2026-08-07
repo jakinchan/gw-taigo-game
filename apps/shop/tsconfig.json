@@ -20,13 +20,27 @@
     "noImplicitReturns": true,
     "jsx": "react-jsx",
     "allowJs": true,
-    "typeRoots": ["node_modules/@types"],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@hfs/shared": [
+        "../../packages/shared/src"
+      ]
     }
   },
-  "include": ["./src", "./types", "./config"],
-  "exclude": ["node_modules", "dist", "backend"],
+  "include": [
+    "./src",
+    "./types",
+    "./config"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
   "compileOnSave": false
 }

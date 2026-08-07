@@ -1,6 +1,6 @@
 /**
- * アプリ全体で共有するドメイン型。
- * バックエンド（NestJS）の DTO と 1:1 で対応させること。
+ * ドメイン型。商城・管理画面・API で共有する。
+ * API のレスポンス契約は ./api.ts を参照。
  */
 
 /** 対応言語。既定は簡体中国語。 */
@@ -124,14 +124,6 @@ export interface ProductQuery {
   sort?: ProductSort
   page?: number
   pageSize?: number
-}
-
-export interface Paginated<T> {
-  list: T[]
-  total: number
-  page: number
-  pageSize: number
-  hasMore: boolean
 }
 
 export interface Review {
@@ -274,27 +266,3 @@ export interface WechatPayParams {
   signType: 'RSA'
   paySign: string
 }
-
-export interface ApiResponse<T> {
-  code: number
-  message: string
-  data: T
-  /**
-   * 業務エラーコード。HTTP ステータスだけでは「なぜ失敗したか」が
-   * 分からないため、UI の分岐にはこちらを使う。
-   * 例: 'REAL_NAME_REQUIRED' なら実名認証画面へ誘導する。
-   */
-  errorCode?: string
-  /** limitCny / remainingCny など、エラー表示に使う付随情報 */
-  details?: Record<string, unknown>
-}
-
-/** サーバが返す業務エラーコード */
-export type ApiErrorCode =
-  | 'REAL_NAME_REQUIRED'
-  | 'SINGLE_LIMIT_EXCEEDED'
-  | 'ANNUAL_LIMIT_EXCEEDED'
-  | 'LIMIT_EXCEEDED'
-  | 'INVALID_ID_CARD'
-  | 'NOT_ENOUGH_POINTS'
-  | 'NO_DRAW_CHANCE'

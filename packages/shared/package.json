@@ -1,0 +1,14 @@
+{
+  "name": "@hfs/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "商城・管理画面・API で共有するドメイン型",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.2"
+  }
+}
