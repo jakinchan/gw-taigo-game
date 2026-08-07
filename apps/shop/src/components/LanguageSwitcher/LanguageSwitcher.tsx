@@ -2,23 +2,29 @@ import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { Locale } from '@/types'
 import { useI18n } from '@/services/i18n'
+import { SUPPORTED_LOCALES, resources } from '@/locales'
 import { clearCache } from '@/utils/storage'
 
 import './LanguageSwitcher.scss'
 
 interface Props {
   /**
-   * segmented: 中文 / 日本語 を並べたトグル（設定画面向け）
-   * compact:   現在の言語を 1 つ表示し、タップで切り替え（ヘッダー向け）
+   * segmented: 中文 / 日本語 / English を並べたトグル（設定画面向け）
+   * compact:   現在の言語を 1 つ表示し、タップで次の言語へ送る（ヘッダー向け）
    */
   variant?: 'segmented' | 'compact'
   /** compact のときに白抜きにする（メインカラー背景のヘッダー用） */
   inverse?: boolean
 }
 
+/**
+ * ラベルは常にその言語自身の表記で出す。
+ * 英語話者に「英語」と中国語で見せても選べないため。
+ */
 const LOCALE_LABEL: Record<Locale, string> = {
   'zh-CN': '中文',
   'ja-JP': '日本語',
+  'en-US': 'EN',
 }
 
 /**
@@ -36,7 +42,8 @@ export default function LanguageSwitcher({ variant = 'compact', inverse = false 
     setLocale(next)
     clearCache()
     Taro.showToast({
-      title: next === 'zh-CN' ? '已切换为中文' : '日本語に切り替えました',
+      // 切り替え後の言語で知らせる（切り替わったことがその場で伝わる）
+      title: resources[next].language.switched,
       icon: 'none',
       duration: 1500,
     })
@@ -45,7 +52,7 @@ export default function LanguageSwitcher({ variant = 'compact', inverse = false 
   if (variant === 'segmented') {
     return (
       <View className='lang-switcher lang-switcher--segmented'>
-        {(Object.keys(LOCALE_LABEL) as Locale[]).map((item) => (
+        {SUPPORTED_LOCALES.map((item) => (
           <View
             key={item}
             className={`lang-switcher__segment ${item === locale ? 'is-active' : ''}`}
@@ -59,7 +66,9 @@ export default function LanguageSwitcher({ variant = 'compact', inverse = false 
     )
   }
 
-  const next: Locale = locale === 'zh-CN' ? 'ja-JP' : 'zh-CN'
+  // 3 言語なのでトグルではなく循環。中文 → 日本語 → EN → 中文。
+  const next: Locale =
+    SUPPORTED_LOCALES[(SUPPORTED_LOCALES.indexOf(locale) + 1) % SUPPORTED_LOCALES.length]
 
   return (
     <View

@@ -1,14 +1,17 @@
 import type { Locale } from '@/types'
 import zhCN from './zh-CN'
 import jaJP from './ja-JP'
+import enUS from './en-US'
 
 export const DEFAULT_LOCALE: Locale = 'zh-CN'
 
-export const SUPPORTED_LOCALES: Locale[] = ['zh-CN', 'ja-JP']
+/** 言語切り替え UI の並び順もこの配列に従う */
+export const SUPPORTED_LOCALES: Locale[] = ['zh-CN', 'ja-JP', 'en-US']
 
 export const resources = {
   'zh-CN': zhCN,
   'ja-JP': jaJP,
+  'en-US': enUS,
 } as const
 
 export type Resources = typeof zhCN

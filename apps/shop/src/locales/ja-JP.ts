@@ -56,6 +56,12 @@ const jaJP: TranslationSchema = {
     noResult: '該当する商品がありません',
     noResultTip: '別のキーワードでお試しください',
     resultCount: '{count} 件の商品',
+    hot1: 'ビタミン',
+    hot2: 'フィッシュオイル',
+    hot3: '乳酸菌',
+    hot4: 'コラーゲン',
+    hot5: '青汁',
+    hot6: 'カルシウム',
   },
   newarrival: {
     title: '人気新商品',
@@ -113,6 +119,10 @@ const jaJP: TranslationSchema = {
     reviewCount: '件のレビュー',
     addedToCart: 'カートに追加しました',
     stockNotEnough: '在庫が不足しています',
+    unitMonth: '/月',
+    unitPiece: '/個',
+    unitBox: '/箱',
+    unitDay: '/日',
   },
   cart: {
     title: 'カート',
@@ -253,6 +263,7 @@ const jaJP: TranslationSchema = {
     switch: '言語',
     zh: '中文',
     ja: '日本語',
+    en: 'English',
     switched: '日本語に切り替えました',
   },
 }

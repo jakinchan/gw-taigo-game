@@ -19,8 +19,20 @@ import './search.scss'
 
 const PAGE_SIZE = 20
 
-/** 検索候補。実運用では管理画面 or 集計から供給する。 */
-const HOT_KEYWORDS = ['维生素', '鱼油', '益生菌', '胶原蛋白', '青汁', '钙片']
+/**
+ * 検索候補。実運用では管理画面 or 集計から供給する。
+ *
+ * ラベルと検索語を兼ねるため辞書から引く。商品名は言語ごとに登録されていて
+ * API はどの言語でも横断検索するので、表示している語をそのまま投げれば当たる。
+ */
+const HOT_KEYWORD_KEYS = [
+  'search.hot1',
+  'search.hot2',
+  'search.hot3',
+  'search.hot4',
+  'search.hot5',
+  'search.hot6',
+] as const
 
 /**
  * 検索ページ。
@@ -185,16 +197,19 @@ export default function Search() {
               <Text className='search__panel-title'>{t('search.hot')}</Text>
             </View>
             <View className='search__tags'>
-              {HOT_KEYWORDS.map((item) => (
-                <View
-                  key={item}
-                  className='search__tag search__tag--hot'
-                  hoverClass='search__tag--hover'
-                  onClick={() => runSearch(item)}
-                >
-                  <Text>{item}</Text>
-                </View>
-              ))}
+              {HOT_KEYWORD_KEYS.map((key) => {
+                const keyword = t(key)
+                return (
+                  <View
+                    key={key}
+                    className='search__tag search__tag--hot'
+                    hoverClass='search__tag--hover'
+                    onClick={() => runSearch(keyword)}
+                  >
+                    <Text>{keyword}</Text>
+                  </View>
+                )
+              })}
             </View>
           </View>
         </View>

@@ -1,3 +1,9 @@
+// キャプションは Swiper の外に重ねる（理由は Banner.tsx のコメント参照）
+.banner-wrap {
+  position: relative;
+  width: 100%;
+}
+
 .banner {
   width: 100%;
 
@@ -21,12 +27,17 @@
 
   &__caption {
     position: absolute;
-    left: 0;
-    right: 0;
+    // スライド内の画像は左右 $page-padding だけ内側にあるので、それに合わせる
+    left: $page-padding;
+    right: $page-padding;
     bottom: 0;
     padding: $space-xl $space-md $space-md;
+    border-bottom-left-radius: $radius-md;
+    border-bottom-right-radius: $radius-md;
     // 画像が明るくても文字が読めるように、下方向のグラデーションを敷く
     background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+    // Swiper の上に重なるので、タップはスライドへ通す
+    pointer-events: none;
   }
 
   &__caption-text {

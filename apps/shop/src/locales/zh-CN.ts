@@ -58,6 +58,14 @@ const zhCN = {
     noResult: '没有找到相关商品',
     noResultTip: '换个关键词试试',
     resultCount: '共 {count} 件商品',
+    // 人気キーワードは表示ラベルと検索語を兼ねる。
+    // 商品名は言語ごとに登録されているので、その言語の語で引ける。
+    hot1: '维生素',
+    hot2: '鱼油',
+    hot3: '益生菌',
+    hot4: '胶原蛋白',
+    hot5: '青汁',
+    hot6: '钙片',
   },
   newarrival: {
     title: '人气新品',
@@ -114,6 +122,11 @@ const zhCN = {
     reviewCount: '条评价',
     addedToCart: '已加入购物车',
     stockNotEnough: '库存不足',
+    // 価格の後ろに付く単位（「128 元/月」の「/月」）
+    unitMonth: '/月',
+    unitPiece: '/个',
+    unitBox: '/盒',
+    unitDay: '/日',
   },
   cart: {
     title: '购物车',
@@ -253,6 +266,7 @@ const zhCN = {
     switch: '语言',
     zh: '中文',
     ja: '日本語',
+    en: 'English',
     switched: '已切换为中文',
   },
 } as const

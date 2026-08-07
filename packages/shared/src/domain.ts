@@ -4,12 +4,19 @@
  */
 
 /** 対応言語。既定は簡体中国語。 */
-export type Locale = 'zh-CN' | 'ja-JP'
+export type Locale = 'zh-CN' | 'ja-JP' | 'en-US'
 
-/** 多言語テキスト。API はこの形で商品名・説明を返す。 */
+/**
+ * 多言語テキスト。API はこの形で商品名・説明を返す。
+ *
+ * 簡体中国語だけを必須にしているのは、これが既定言語であり
+ * 「どの言語にも訳が無い」状態を型で防ぐため。日本語・英語は
+ * 未入稿の商品がありうるので任意にし、表示側は zh-CN に落とす。
+ */
 export interface LocalizedText {
   'zh-CN': string
-  'ja-JP': string
+  'ja-JP'?: string
+  'en-US'?: string
 }
 
 /**

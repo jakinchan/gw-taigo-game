@@ -10,11 +10,14 @@ export function formatCny(fen: number): string {
   return `${sign}¥${Math.floor(abs / 100)}.${String(abs % 100).padStart(2, '0')}`
 }
 
-/** 管理画面は中国語運用が前提なので簡体字を優先する */
+/**
+ * 管理画面は中国語運用が前提なので簡体字を優先する。
+ * 未入稿の商品でも名前が消えないよう、英語・日本語に落とす。
+ */
 export function tx(text: LocalizedText | Record<string, string> | undefined): string {
   if (!text) return ''
   const record = text as Record<string, string>
-  return record['zh-CN'] || record['ja-JP'] || ''
+  return record['zh-CN'] || record['en-US'] || record['ja-JP'] || ''
 }
 
 export function formatDateTime(iso: string | undefined): string {

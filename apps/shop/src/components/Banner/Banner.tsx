@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Swiper, SwiperItem, View, Text } from '@tarojs/components'
+import type { CommonEventFunction } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { IMAGE_PRESET } from '@/utils/image'
 import SafeImage from '@/components/SafeImage'
@@ -24,9 +26,21 @@ interface Props {
 /**
  * トップのキャンペーンバナー。
  * 画像は 750x320 (=375x160pt) を基準にする。仕様の「縦 500px 以内」に収まる。
+ *
+ * キャプションを SwiperItem の中ではなく外に重ねているのには理由がある。
+ * circular の Swiper は H5 で先頭・末尾のスライドを DOM ごと複製して繋げるため、
+ * スライドの中身は React の管理から外れる。中に置くと、言語を切り替えたときに
+ * 複製側だけ前の言語の文言が残る。外に出して現在の index だけを見れば、
+ * 描画は最後まで React の側にある。
  */
 export default function Banner({ items, interval = 4000, height = 160 }: Props) {
+  const [current, setCurrent] = useState(0)
+
   if (items.length === 0) return null
+
+  const handleChange: CommonEventFunction<{ current: number }> = (event) => {
+    setCurrent(event.detail.current)
+  }
 
   const handleTap = (item: BannerItem) => {
     if (!item.link) return
@@ -43,37 +57,43 @@ export default function Banner({ items, interval = 4000, height = 160 }: Props) 
     }
   }
 
+  const caption = items[current]?.caption
+
   return (
-    <Swiper
-      className='banner'
-      style={{ height: `${height}px` }}
-      indicatorDots
-      indicatorColor='rgba(255,255,255,0.45)'
-      indicatorActiveColor='#ffffff'
-      autoplay={interval > 0 && items.length > 1}
-      interval={interval}
-      duration={400}
-      circular
-    >
-      {items.map((item) => (
-        <SwiperItem key={item.id} className='banner__item'>
-          <View className='banner__inner' onClick={() => handleTap(item)}>
-            <SafeImage
-              className='banner__image'
-              src={item.image}
-              options={{ ...IMAGE_PRESET.banner, height }}
-              fallback='banner'
-              mode='aspectFill'
-              lazyLoad
-            />
-            {item.caption && (
-              <View className='banner__caption'>
-                <Text className='banner__caption-text'>{item.caption}</Text>
-              </View>
-            )}
-          </View>
-        </SwiperItem>
-      ))}
-    </Swiper>
+    <View className='banner-wrap' style={{ height: `${height}px` }}>
+      <Swiper
+        className='banner'
+        style={{ height: `${height}px` }}
+        indicatorDots
+        indicatorColor='rgba(255,255,255,0.45)'
+        indicatorActiveColor='#ffffff'
+        autoplay={interval > 0 && items.length > 1}
+        interval={interval}
+        duration={400}
+        circular
+        onChange={handleChange}
+      >
+        {items.map((item) => (
+          <SwiperItem key={item.id} className='banner__item'>
+            <View className='banner__inner' onClick={() => handleTap(item)}>
+              <SafeImage
+                className='banner__image'
+                src={item.image}
+                options={{ ...IMAGE_PRESET.banner, height }}
+                fallback='banner'
+                mode='aspectFill'
+                lazyLoad
+              />
+            </View>
+          </SwiperItem>
+        ))}
+      </Swiper>
+
+      {caption && (
+        <View className='banner__caption'>
+          <Text className='banner__caption-text'>{caption}</Text>
+        </View>
+      )}
+    </View>
   )
 }

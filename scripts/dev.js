@@ -81,31 +81,51 @@ function hasCommand(cmd) {
   return run(cmd, ['--version'], { quiet: true }).code === 0
 }
 
-/**
- * そのポートで listen できるか（= 空いているか）。
- *
- * host を指定せずに listen するのが要点。'0.0.0.0' だと IPv4 しか見ないが、
- * NestJS も webpack-dev-server も host 未指定＝ IPv6 のデュアルスタック
- * （:::PORT）で bind する。IPv4 だけ見て「空き」と判断すると、
- * IPv6 側が塞がっていた場合に起動時 EADDRINUSE で落ちる。
- */
-function isPortFree(port) {
+/** 指定の host で listen できるか。host 未指定なら Node の既定（IPv6 デュアルスタック）。 */
+function canListen(port, host) {
   return new Promise((resolve) => {
     const server = net.createServer()
     server.once('error', () => resolve(false))
     server.once('listening', () => server.close(() => resolve(true)))
-    server.listen(port)
+    if (host) server.listen(port, host)
+    else server.listen(port)
   })
 }
 
-async function findFreePort(start, label) {
-  for (let port = start; port < start + 50; port++) {
+/**
+ * そのポートが本当に空いているか。
+ *
+ * Windows は IPv4 と IPv6 のバインドを別物として扱うため、片方だけを見ると
+ * 取りこぼす。両方を確かめる必要がある:
+ *
+ *   - host 未指定（:::PORT）… NestJS も webpack-dev-server もこれで bind する。
+ *     ここが塞がっていると起動時 EADDRINUSE で落ちる。
+ *   - '0.0.0.0'（IPv4）… 他プロセスが IPv4 だけを掴んでいると、host 未指定の
+ *     チェックは成功してしまう。「空き」と誤判定したまま .env に
+ *     CORS_ORIGINS を書くと、実際には別ポートで起動した商城からの
+ *     API 呼び出しが CORS で全滅する。
+ */
+async function isPortFree(port) {
+  return (await canListen(port)) && (await canListen(port, '0.0.0.0'))
+}
+
+/**
+ * 空きポートを探す。
+ *
+ * 探索幅を 50 では足りないことがある。Windows は Hyper-V / WSL のために
+ * 100 番単位の連続レンジを丸ごと予約する（netsh interface ipv4
+ * show excludedportrange で確認できる）ため、開始ポートがその帯に
+ * 入っていると 50 個連続で全滅する。予約帯 1 つを飛び越えられるよう
+ * 300 個まで見る。
+ */
+async function findFreePort(start, label, span = 300) {
+  for (let port = start; port < start + span; port++) {
     if (await isPortFree(port)) {
       if (port !== start) warn(`${label}: ${start} は使用中のため ${port} を使う`)
       return port
     }
   }
-  throw new Error(`${label}: ${start} から 50 個試しても空きポートが無い`)
+  throw new Error(`${label}: ${start} から ${span} 個試しても空きポートが無い`)
 }
 
 async function waitFor(check, { timeoutMs = 240_000, intervalMs = 1000, label = '' } = {}) {

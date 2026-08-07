@@ -15,14 +15,24 @@ import { PrismaClient } from '@prisma/client'
 import * as jwt from 'jsonwebtoken'
 
 // NestJS 経由ではないので .env を自前で読む
-loadEnv()
+const env = loadEnv().parsed ?? {}
 
 const prisma = new PrismaClient()
 /**
- * localhost だと Node の fetch が IPv6 (::1) を先に引いて
- * ECONNREFUSED になることがあるので、既定は IPv4 を明示する。
+ * 接続先。
+ *
+ * ポートを決め打ちしないこと。dev.js は空きポートを選んで .env の PORT に
+ * 書くので、固定すると別プロセスに当たる。実際、開発機の 3100 番を
+ * 別プロジェクトの API が使っていて、DB はこちらを見たまま HTTP だけ
+ * 相手のサーバに飛び、全部 401 になるという分かりにくい失敗をした。
+ *
+ * PORT は process.env ではなく .env の値を直接見る。dotenv は既存の
+ * 環境変数を上書きしないので、シェルに PORT が残っているとそちらが勝つ。
+ *
+ * localhost ではなく 127.0.0.1 にするのは、Node の fetch が IPv6 (::1) を
+ * 先に引いて ECONNREFUSED になることがあるため。
  */
-const BASE = process.env.API_BASE ?? 'http://127.0.0.1:3100/api'
+const BASE = process.env.API_BASE ?? `http://127.0.0.1:${env.PORT ?? 3100}/api`
 
 let passed = 0
 let failed = 0

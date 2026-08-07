@@ -2,6 +2,7 @@ import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { Product } from '@/types'
 import { useI18n } from '@/services/i18n'
+import type { TranslationKey } from '@/locales'
 import { splitCny } from '@/utils/currency'
 import SafeImage from '@/components/SafeImage'
 
@@ -18,11 +19,12 @@ interface Props {
   onClick?: (product: Product) => void
 }
 
-const UNIT_LABEL: Record<NonNullable<Product['priceUnit']>, string> = {
-  month: '/月',
-  piece: '/个',
-  box: '/盒',
-  day: '/日',
+/** 価格の後ろに出す単位。実際の文言は辞書から引く。 */
+const UNIT_KEY: Record<NonNullable<Product['priceUnit']>, TranslationKey> = {
+  month: 'product.unitMonth',
+  piece: 'product.unitPiece',
+  box: 'product.unitBox',
+  day: 'product.unitDay',
 }
 
 /**
@@ -40,7 +42,7 @@ export default function ProductCard({ product, variant = 'grid3', onClick }: Pro
 
   const soldOut = product.stock <= 0 && product.stockLabel !== 'producing'
   const { integer, decimal } = splitCny(product.priceCny)
-  const unit = UNIT_LABEL[product.priceUnit ?? 'piece']
+  const unit = t(UNIT_KEY[product.priceUnit ?? 'piece'])
 
   const goDetail = () => {
     if (onClick) {

@@ -1,7 +1,7 @@
 # 营养工厂 / 栄養ファクトリー — 健康食品クロスボーダー EC ミニプログラム
 
 WeChat ミニプログラム（Taro + React + TypeScript）と NestJS API による、健康食品の越境 EC システムです。
-中国語（簡体字）をデフォルトに、日本語への切り替えに対応しています。
+中国語（簡体字）をデフォルトに、日本語・英語への切り替えに対応しています。
 
 > **⚠️ 法規制について — 実装前に必ずお読みください**
 > 本リポジトリはアプリケーションの雛形であり、法務レビューを代替するものではありません。
@@ -77,7 +77,7 @@ WeChat ミニプログラム（Taro + React + TypeScript）と NestJS API によ
 │   │       ├── components/     # BrandHeader / ProductCard / SideDock ほか
 │   │       ├── services/       # api / i18n / wechatPay / mock
 │   │       ├── store/          # cart / user / preference（zustand）
-│   │       ├── locales/        # zh-CN / ja-JP
+│   │       ├── locales/        # zh-CN / ja-JP / en-US
 │   │       └── utils/          # currency / image / platform / request
 │   │
 │   ├── admin/                  # 管理画面（PC）
@@ -130,6 +130,11 @@ npm run dev
 完了すると URL が表示されます。`Ctrl+C` で各サーバが止まります
 （DB コンテナは次回すぐ使えるよう動かしたままにします）。
 
+> **止まりきらないときは `npm run dev:stop`。** Ctrl+C は npm → node → taro の
+> 孫プロセスを取りこぼすことがあり、残ったままだと次回の起動でポートが
+> 押し出されて `CORS_ORIGINS` とずれ、API 呼び出しが全滅します。
+> `dev:stop` はこのリポジトリ配下のプロセスだけを見て片付けます。
+
 | コマンド | 用途 |
 | --- | --- |
 | `npm run dev` | DB + API + 商城(H5) + 管理画面(PC) |
@@ -137,7 +142,7 @@ npm run dev
 | `npm run dev:admin` | DB + API + 管理画面のみ |
 | `npm run dev:api` | API のみ（微信開発者ツールで確認する場合） |
 | `npm run dev:fresh` | DB を作り直してシードから入れ直す |
-| `npm run dev:stop` | DB コンテナを停止（データは残る） |
+| `npm run dev:stop` | 残った開発プロセスと DB コンテナを停止（データは残る） |
 | `npm run dev:stop -- --purge` | DB コンテナを削除（データも消える） |
 
 ### 微信小程序で確認する
@@ -368,18 +373,27 @@ API は `http://localhost:3000/api`、Swagger は `http://localhost:3000/api/doc
 
 ## 多言語対応
 
-- デフォルトは簡体中国語。保存済み設定 → 端末言語 → 既定 の順に解決します
+**簡体中国語（既定）・日本語・英語**の 3 言語に対応しています。
+
+- 解決順は 保存済み設定 → 端末言語 → 既定（`zh-CN`）。端末言語は `ja` / `en` の
+  接頭辞だけを見ます（微信は `zh_CN`、H5 は `en-US` と表記が揺れるため）
 - 言語設定はローカルストレージ（`hfs:locale`）に保存されます
-- 商品名・説明は API が `{ "zh-CN": "...", "ja-JP": "..." }` の形で返し、`tx()` で表示言語を選びます
+- 商品名・説明は API が `{ "zh-CN": "…", "ja-JP": "…", "en-US": "…" }` の形で返し、
+  `tx()` で表示言語を選びます。**必須なのは `zh-CN` だけ**で、日本語・英語が
+  未入稿の商品は 希望言語 → 英語 → 簡体中国語 の順に落ちます
+  （空文字を返して商品名が消えるより、中国語のまま出したほうがよい）
 - UI 文言は `t('product.addToCart')` のようにドット区切りキーで参照します。
   存在しないキーはコンパイルエラーになります
-- `ja-JP.ts` は `TranslationSchema` 型により、`zh-CN.ts` のキーが 1 つでも欠けるとビルドが通りません
+- `ja-JP.ts` と `en-US.ts` は `TranslationSchema` 型により、`zh-CN.ts` のキーが
+  1 つでも欠けるとビルドが通りません
 - tabBar のラベルは静的定義なので、切り替え時に `Taro.setTabBarItem` で書き換えます
+- 商品検索は 3 言語すべての商品名を横断します（`name` の JSON パスを OR で並べる）
 
 ### 文言を追加する
 
-1. `src/locales/zh-CN.ts` にキーを追加
-2. `src/locales/ja-JP.ts` に同じキーを追加（忘れると型エラーで気付けます）
+1. `src/locales/zh-CN.ts` にキーを追加（ここが正本）
+2. `src/locales/ja-JP.ts` と `src/locales/en-US.ts` に同じキーを追加
+   （忘れると型エラーで気付けます）
 3. `t('セクション.キー')` で参照
 
 ---
@@ -417,7 +431,7 @@ API は `http://localhost:3000/api`、Swagger は `http://localhost:3000/api/doc
 | ボタン | 14px |
 | 注釈 | 12px |
 
-フォントは中国語・日本語の両方で破綻しないシステムフォントスタックを使用しています
+フォントは中国語・日本語・英語のいずれでも破綻しないシステムフォントスタックを使用しています
 （PingFang SC / Hiragino / Yu Gothic / Noto Sans SC・JP）。
 
 ### アクセシビリティ

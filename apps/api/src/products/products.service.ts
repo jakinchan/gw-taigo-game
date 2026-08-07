@@ -46,20 +46,12 @@ export class ProductsService {
   async findAll(query: QueryProductsDto) {
     const { categoryId, keyword, sort, page, pageSize } = query
 
+    const matchedIds = keyword ? await this.searchProductIds(keyword) : null
+
     const where: Prisma.ProductWhereInput = {
       isActive: true,
       ...(categoryId ? { categoryId } : {}),
-      ...(keyword
-        ? {
-            // JSON カラムの多言語名を横断検索する。
-            // 中国語・日本語の両方でヒットさせたいので string_contains を OR で並べる。
-            OR: [
-              { name: { path: ['zh-CN'], string_contains: keyword } },
-              { name: { path: ['ja-JP'], string_contains: keyword } },
-              { sku: { contains: keyword, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
+      ...(matchedIds ? { id: { in: matchedIds } } : {}),
     }
 
     const orderBy = this.buildOrderBy(sort)
@@ -208,6 +200,35 @@ export class ProductsService {
   }
 
   // ----------------------------------------------------------
+
+  /**
+   * キーワードに一致する商品 ID を返す。
+   *
+   * Prisma の JSON フィルタ（`string_contains`）は大小文字を区別し、
+   * `mode: 'insensitive'` を受け付けない。中国語・日本語は大小の区別が
+   * 無いので問題にならないが、英語では "Vitamin" が "Multivitamin" に
+   * 当たらないという分かりにくい取りこぼしになる。ILIKE を使うために
+   * ここだけ生 SQL で ID を引き、並び替えとページングは Prisma に任せる。
+   *
+   * キーワードは必ずパラメータとして渡す（文字列連結しない）。
+   * LIKE のメタ文字は打ち消して、`100%` のような入力が
+   * 全件一致にならないようにする。
+   */
+  private async searchProductIds(keyword: string): Promise<string[]> {
+    const pattern = `%${keyword.replace(/[\\%_]/g, (c) => `\\${c}`)}%`
+
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT "id" FROM "Product"
+      WHERE "isActive" = true
+        AND (
+          "name"->>'zh-CN' ILIKE ${pattern}
+          OR "name"->>'ja-JP' ILIKE ${pattern}
+          OR "name"->>'en-US' ILIKE ${pattern}
+          OR "sku" ILIKE ${pattern}
+        )
+    `
+    return rows.map((r) => r.id)
+  }
 
   private buildOrderBy(sort?: ProductSort): Prisma.ProductOrderByWithRelationInput {
     switch (sort) {

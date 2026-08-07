@@ -37,16 +37,19 @@
 
   &--segmented {
     @include flex(center, center);
+    width: 100%;
     padding: 3px;
     border-radius: $radius-pill;
     background: $color-divider;
   }
 
+  // 3 言語を等分する。固定幅にすると英語ラベルの分だけ横に溢れる。
   &__segment {
     @include flex(center, center);
-    min-width: 84px;
+    flex: 1;
+    min-width: 0;
     height: 38px;
-    padding: 0 $space-md;
+    padding: 0 $space-sm;
     border-radius: $radius-pill;
     font-size: $font-sub;
     color: $color-text-secondary;

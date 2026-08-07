@@ -17,14 +17,21 @@ interface I18nState {
   setLocale: (locale: Locale) => void
 }
 
-/** 保存済みの言語 → 端末の言語 → 既定（簡体中国語）の順で解決する */
+/**
+ * 保存済みの言語 → 端末の言語 → 既定（簡体中国語）の順で解決する。
+ *
+ * 端末が返す値は環境ごとに揺れる（微信は `zh_CN`、H5 は `en-US` や `ja` など）ので、
+ * 区切り文字を揃えたうえで先頭 2 文字だけを見る。中国語は簡体しか用意していないため
+ * `zh-TW` も既定に落ちるが、これは意図した挙動。
+ */
 function resolveInitialLocale(): Locale {
   const saved = getStorage('locale')
   if (saved && saved in resources) return saved
 
   try {
-    const systemLanguage = Taro.getSystemInfoSync().language ?? ''
+    const systemLanguage = (Taro.getSystemInfoSync().language ?? '').replace('_', '-')
     if (systemLanguage.startsWith('ja')) return 'ja-JP'
+    if (systemLanguage.startsWith('en')) return 'en-US'
   } catch {
     /* 取得できない環境は既定にフォールバック */
   }
@@ -99,6 +106,18 @@ export function translate(
 }
 
 /**
+ * API が返す LocalizedText を 1 つの文字列に落とす。
+ *
+ * 日本語・英語は商品ごとに未入稿がありうるので、
+ * 希望言語 → 英語 → 既定（簡体中国語）の順に落とす。
+ * 空文字を返して商品名が消えるより、中国語のまま出したほうがよい。
+ */
+export function translateText(text: LocalizedText | undefined, locale: Locale): string {
+  if (!text) return ''
+  return text[locale] || text['en-US'] || text[DEFAULT_LOCALE] || ''
+}
+
+/**
  * React フック。コンポーネントは `const { t, locale } = useI18n()` で使う。
  * locale が変わると zustand が再レンダリングを起こすので、
  * 画面全体が自動的に切り替わる。
@@ -113,10 +132,7 @@ export function useI18n() {
     t: (key: TranslationKey, params?: Record<string, string | number>) =>
       translate(locale, key, params),
     /** API が返す LocalizedText を現在の言語で表示する */
-    tx: (text: LocalizedText | undefined) => {
-      if (!text) return ''
-      return text[locale] || text[DEFAULT_LOCALE] || ''
-    },
+    tx: (text: LocalizedText | undefined) => translateText(text, locale),
   }
 }
 
