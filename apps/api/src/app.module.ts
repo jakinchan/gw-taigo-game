@@ -12,7 +12,6 @@ import { ProductsModule } from './products/products.module'
 import { OrdersModule } from './orders/orders.module'
 import { UsersModule } from './users/users.module'
 import { PaymentModule } from './payment/payment.module'
-import { FxModule } from './fx/fx.module'
 import { CouponsModule } from './coupons/coupons.module'
 import { AdminModule } from './admin/admin.module'
 import { LotteryModule } from './lottery/lottery.module'
@@ -37,7 +36,6 @@ import { LotteryModule } from './lottery/lottery.module'
     OrdersModule,
     UsersModule,
     PaymentModule,
-    FxModule,
     CouponsModule,
     LotteryModule,
     AdminModule,

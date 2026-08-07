@@ -1,9 +1,7 @@
 import { useEffect, type PropsWithChildren } from 'react'
 import Taro, { useLaunch, useError } from '@tarojs/taro'
-import { fxApi } from '@/services/api'
 import { syncTabBarText, useI18nStore } from '@/services/i18n'
 import { useUserStore } from '@/store/user'
-import { isFxRateStale, setFxRate } from '@/utils/currency'
 import { setDevicePixelRatio } from '@/utils/image'
 
 import './app.scss'
@@ -32,15 +30,6 @@ function App({ children }: PropsWithChildren) {
     setTimeout(() => syncTabBarText(locale), 0)
 
     void restoreUser()
-
-    if (isFxRateStale()) {
-      fxApi
-        .rate()
-        .then(({ rate, quotedAt }) => setFxRate(rate, quotedAt))
-        .catch(() => {
-          // 取得失敗時は前回値／フォールバック値のまま。JPY 表示は参考値なので致命的ではない。
-        })
-    }
   })
 
   // 言語が切り替わったら tabBar のラベルも追随させる

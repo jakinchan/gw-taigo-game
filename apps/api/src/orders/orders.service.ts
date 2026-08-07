@@ -9,7 +9,6 @@ import { OrderStatus, Prisma, ShippingMethod } from '@prisma/client'
 import { randomInt } from 'node:crypto'
 
 import { PrismaService } from '../common/prisma/prisma.service'
-import { FxService } from '../fx/fx.service'
 import { CouponsService } from '../coupons/coupons.service'
 import { TaxRateService } from '../customs/tax-rate.service'
 import {
@@ -31,7 +30,6 @@ export class OrdersService {
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly fx: FxService,
     private readonly coupons: CouponsService,
     private readonly taxRates: TaxRateService,
     private readonly purchaseLimits: PurchaseLimitService,
@@ -123,9 +121,6 @@ export class OrdersService {
           taxCny: amounts.taxCny,
           totalCny: amounts.totalCny,
 
-          fxRate: amounts.fxRate,
-          fxQuotedAt: new Date(amounts.fxQuotedAt),
-          totalJpyEstimate: amounts.totalJpyEstimate,
           couponCode: dto.couponCode,
           // 通関申告・年間限度額の集計キー。後から本人情報が変わっても
           // この注文がどの名義で申告されたかは動かさない。
@@ -298,7 +293,6 @@ export class OrdersService {
     }
 
     const totalCny = Math.max(subtotalCny + shippingFeeCny + taxCny - discountCny, 0)
-    const quote = this.fx.getQuote()
 
     return {
       subtotalCny,
@@ -306,10 +300,6 @@ export class OrdersService {
       discountCny,
       taxCny,
       totalCny,
-      // 表示専用。決済額は人民元建ての totalCny。
-      totalJpyEstimate: this.fx.toJpy(totalCny, quote.rate),
-      fxRate: quote.rate,
-      fxQuotedAt: quote.quotedAt,
       taxLines,
     }
   }
@@ -477,9 +467,6 @@ export class OrdersService {
         discountCny: order.discountCny,
         taxCny: order.taxCny,
         totalCny: order.totalCny,
-        totalJpyEstimate: order.totalJpyEstimate,
-        fxRate: order.fxRate,
-        fxQuotedAt: order.fxQuotedAt.toISOString(),
       },
       address: order.addressSnapshot,
       shippingMethod: order.shippingMethod,

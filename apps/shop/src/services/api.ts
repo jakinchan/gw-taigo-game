@@ -26,7 +26,6 @@ const TTL = {
   categories: 30 * 60 * 1000, // 30 分
   productList: 3 * 60 * 1000, // 3 分
   productDetail: 60 * 1000, // 1 分（在庫が含まれるため短く）
-  fxRate: 6 * 60 * 60 * 1000, // 6 時間
 } as const
 
 /**
@@ -250,14 +249,3 @@ export const lotteryApi = {
     ),
 }
 
-// ------------------------------------------------------------
-// 為替
-// ------------------------------------------------------------
-
-export const fxApi = {
-  /** 1 CNY = rate JPY。表示専用（決済確定額ではない）。 */
-  rate: () =>
-    request<{ rate: number; quotedAt: string; source: string }>('/fx/cny-jpy', {
-      cacheTtlMs: TTL.fxRate,
-    }),
-}

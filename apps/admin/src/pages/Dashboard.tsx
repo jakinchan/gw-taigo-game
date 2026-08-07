@@ -1,7 +1,6 @@
-import { fxApi } from '@/api'
 import { adminApi } from '@/api/admin'
 import { useAsync } from '@/hooks/useAsync'
-import { formatCny, formatDateTime } from '@/utils/format'
+import { formatCny } from '@/utils/format'
 
 /**
  * ダッシュボード。
@@ -11,7 +10,6 @@ import { formatCny, formatDateTime } from '@/utils/format'
  */
 export default function Dashboard() {
   const overview = useAsync(() => adminApi.overview(), [])
-  const fx = useAsync(() => fxApi.rate(), [])
 
   if (overview.loading) return <div className='loading'>読み込み中…</div>
 
@@ -75,20 +73,8 @@ export default function Dashboard() {
           <div className='stat__value'>{data.orders.completed}</div>
         </div>
 
-        <div className='stat'>
-          <div className='stat__label'>参考レート（1 CNY）</div>
-          <div className='stat__value'>{fx.data ? `￥${fx.data.rate.toFixed(2)}` : '—'}</div>
-          <div className='stat__hint'>
-            {fx.data ? formatDateTime(fx.data.quotedAt) : '取得できていません'}・表示専用
-          </div>
-        </div>
       </div>
 
-      <div className='notice' style={{ marginTop: 16 }}>
-        表示している為替レートは参考値です。越境決済では顧客が人民元で支払い、
-        加盟店には契約通貨で入金されます。換算は微信支付／決済代行が精算時に確定させるため、
-        この値を請求額や入金予定額として使わないでください。
-      </div>
     </>
   )
 }

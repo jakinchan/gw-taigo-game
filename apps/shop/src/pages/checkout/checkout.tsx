@@ -6,8 +6,7 @@ import { orderApi, userApi } from '@/services/api'
 import { payOrder } from '@/services/wechatPay'
 import { useI18n } from '@/services/i18n'
 import { selectSelectedItems, useCartStore } from '@/store/cart'
-import { usePreferenceStore } from '@/store/preference'
-import { cnyToJpy, formatCny, formatJpy } from '@/utils/currency'
+import { formatCny } from '@/utils/currency'
 import { isErrorCode, toUserMessage } from '@/utils/request'
 import SafeImage from '@/components/SafeImage'
 import Loading from '@/components/Loading'
@@ -34,7 +33,6 @@ export default function Checkout() {
   const { t, tx } = useI18n()
   const cartItems = useCartStore(selectSelectedItems)
   const removeMany = useCartStore((s) => s.removeMany)
-  const showJpy = usePreferenceStore((s) => s.showJpy)
 
   const [lines, setLines] = useState<OrderLine[]>([])
   const [address, setAddress] = useState<Address | null>(null)
@@ -314,16 +312,8 @@ export default function Checkout() {
               <Text className='checkout__total-label'>{t('checkout.total')}</Text>
               <View className='checkout__total-values'>
                 <Text className='checkout__total-cny'>¥{formatCny(amounts.totalCny)}</Text>
-                {showJpy && (
-                  <Text className='checkout__total-jpy'>
-                    {t('common.approx')} ￥{formatJpy(amounts.totalJpyEstimate)}（1 CNY ≈{' '}
-                    {amounts.fxRate.toFixed(2)} JPY）
-                  </Text>
-                )}
               </View>
             </View>
-
-            {showJpy && <Text className='checkout__fx-note'>※ {t('currency.rateNote')}</Text>}
           </>
         ) : (
           <Text className='checkout__amount-error'>{t('common.networkError')}</Text>
@@ -339,11 +329,6 @@ export default function Checkout() {
           <Text className='checkout__footer-value'>
             ¥{formatCny(amounts?.totalCny ?? 0)}
           </Text>
-          {showJpy && amounts && (
-            <Text className='checkout__footer-jpy'>
-              {t('common.approx')} ￥{formatJpy(amounts.totalJpyEstimate || cnyToJpy(amounts.totalCny))}
-            </Text>
-          )}
         </View>
 
         <View

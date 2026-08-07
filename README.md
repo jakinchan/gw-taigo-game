@@ -98,7 +98,7 @@ WeChat ミニプログラム（Taro + React + TypeScript）と NestJS API によ
 │           ├── payment/        # WeChat Pay APIv3・支付通知
 │           ├── customs/        # 通関申告・税率・購入限度額
 │           ├── lottery/        # 抽選（サーバ抽選）
-│           ├── users/ coupons/ fx/
+│           ├── users/ coupons/ admin/
 │           └── common/         # Prisma・暗号化・例外フィルタ
 │
 ├── packages/
@@ -234,7 +234,7 @@ API は `http://localhost:3000/api`、Swagger は `http://localhost:3000/api/doc
 
 ### 金額は必ず「最小通貨単位の整数」
 
-CNY は分（`12800` = ¥128.00）、JPY は円で保持します。浮動小数で金額を持つと
+金額はすべて CNY の分（`12800` = ¥128.00）で保持します。浮動小数で金額を持つと
 丸め誤差で 1 分ずれ、決済照合が破綻します。DB も `Int` です。
 
 ### 請求額の正本はサーバ
@@ -289,7 +289,6 @@ CNY は分（`12800` = ¥128.00）、JPY は円で保持します。浮動小数
 | GET | `/api/products/:id` | – | 商品詳細（在庫ロット・賞味期限込み） |
 | GET | `/api/products/:id/reviews` | – | レビュー |
 | GET | `/api/products/:id/related` | – | 関連商品 |
-| GET | `/api/fx/cny-jpy` | – | CNY→JPY 参考レート |
 | GET | `/api/lottery/board` | – | 抽選盤の賞品（確率・在庫は返さない） |
 | GET | `/api/lottery/status` | ✔ | 保有積分と本日の残り回数 |
 | POST | `/api/lottery/draw` | ✔ | 抽選の実行（サーバ抽選・冪等） |
@@ -337,19 +336,19 @@ CNY は分（`12800` = ¥128.00）、JPY は円で保持します。浮動小数
   │◀─ { paid: true } ───────────┤                             │
 ```
 
-### CNY 表示・JPY 入金
+### 決済通貨は人民元のみ
 
-顧客は**人民元建て**で支払い、加盟店（海外法人）には契約通貨（JPY）で入金されます。
-換算レートとタイミングは微信支付／決済代行が精算時に確定させるため、
-**アプリが表示する日本円額は参考値であり、入金額と一致しません**。
+顧客は**人民元建て**でのみ支払います。アプリが表示・送信する金額は常に CNY の
+「分」で、他通貨への換算表示は一切行いません。
 
-この前提を守るため、実装は以下のようになっています。
+越境（境外收单）の場合、加盟店（海外法人）への入金は契約通貨（JPY 等）になりますが、
+換算レートとタイミングは微信支付／決済代行が精算時に確定させる**加盟店側の事情**です。
+顧客が払う額とは無関係なので、アプリのロジックには現れません。
 
-- API に渡す金額は常に CNY の「分」（`amount.total`, `currency: 'CNY'`）
-- JPY 換算は表示専用（`apps/shop/src/utils/currency.ts` / `apps/api/src/fx/`）
-- 注文時のレートを `Order.fxRate` に固定保存し、後から注文履歴を見ても表示がブレない
-- 為替 API が前回比 ±20% を超えるレートを返した場合は採用しない（異常値対策）
-- UI には常に「汇率仅供参考，以实际结算为准 / 為替レートは参考値です」を併記
+- API に渡す金額は常に CNY の「分」（`amounts.totalCny`、`currency: 'CNY'`）
+- 表示のフォーマットは `apps/shop/src/utils/currency.ts` に集約
+- `Order.fxRate` / `fxQuotedAt` / `totalJpyEstimate` と `FxRate` テーブルは、
+  外貨表示を再開したときのために定義だけ残してあり、現在は常に null（未使用）
 
 ### 決済代行（SBPS など）を使う場合
 
@@ -486,7 +485,7 @@ tabBar は **3 つ**（首页 / 全部商品 / 我的）。カートは tabBar �
 ## パフォーマンス
 
 - **リクエスト数削減**：トップページは `/home-feed` で 1 往復
-- **キャッシュ**：カテゴリ 30 分 / 商品一覧 3 分 / 商品詳細 1 分 / 為替 6 時間。
+- **キャッシュ**：カテゴリ 30 分 / 商品一覧 3 分 / 商品詳細 1 分。
   TTL は `src/services/api.ts` に集約しています
 - **画像**：CDN の URL パラメータで WebP 変換 + リサイズ + DPR 対応（`src/utils/image.ts`）。
   端末の `pixelRatio` に応じた解像度を要求し、最大 3 倍で頭打ちにします

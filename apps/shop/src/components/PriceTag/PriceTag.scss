@@ -35,18 +35,6 @@
     text-decoration: line-through;
   }
 
-  &__jpy {
-    margin-left: $space-xs;
-    font-size: $font-caption;
-    color: $color-text-tertiary;
-    white-space: nowrap;
-  }
-
-  &.is-stacked &__jpy {
-    margin-left: 0;
-    margin-top: 2px;
-  }
-
   // ---- サイズ ----
   &--sm &__integer {
     font-size: $font-sub;

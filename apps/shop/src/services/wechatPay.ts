@@ -5,13 +5,11 @@ import { ApiError, request } from '@/utils/request'
 /**
  * WeChat Pay（小程序支付 / 越境決済）連携。
  *
- * ■ 越境決済（跨境支付）の全体像
- *   1. 顧客は人民元（CNY）建てで表示された金額を微信支付で支払う。
- *   2. 微信支付は「境外收单」加盟店として登録された加盟店に対し、
- *      CNY で受領した資金を加盟店の決済通貨（ここでは JPY）へ換算して入金する。
- *   3. 換算レート・タイミングは微信支付／決済代行（SBPS 等）側が確定させる。
- *      → 小程序側で表示する JPY 額はあくまで参考値であり、
- *        入金額と一致することを保証してはならない。
+ * ■ 決済通貨
+ *   顧客は必ず人民元（CNY）建てで支払う。アプリが扱う金額は常に CNY の「分」。
+ *   越境（境外收单）の場合、加盟店への入金は契約通貨（JPY 等）になるが、
+ *   その換算は微信支付／決済代行が精算時に確定させる加盟店側の事情であり、
+ *   アプリのロジックには現れない。
  *
  * ■ 署名について
  *   paySign は必ずサーバ側（APIv3 秘密鍵を持つ NestJS）で生成する。
@@ -101,15 +99,13 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
- * 決済ページで表示する「参考 JPY 額」をサーバに再問い合わせする。
- * 表示のブレを避けるため、注文作成時にサーバが確定させたレートを使う。
+ * 請求額をサーバに再問い合わせする。
+ * 表示している額と実際の請求額がずれていないかの確認に使う。
  */
 export async function getSettlementQuote(orderNo: string) {
   return request<{
     chargeCny: number
-    estimatedSettlementJpy: number
-    fxRate: number
-    quotedAt: string
+    currency: 'CNY'
     provider: 'wechat_direct' | 'sbps'
   }>(`/payment/quote/${orderNo}`, { auth: true })
 }

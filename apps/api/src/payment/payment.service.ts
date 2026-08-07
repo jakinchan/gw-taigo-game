@@ -173,22 +173,22 @@ export class PaymentService {
   }
 
   /**
-   * 精算見込みの照会。
-   * 実際の入金額は微信支付／決済代行の精算で確定するため、
-   * ここで返すのは注文時レートに基づく参考値であることを明示する。
+   * 請求額の照会。
+   *
+   * 人民元のみの運用なので、顧客が支払う額は totalCny そのもの。
+   * 加盟店への入金通貨（越境なら JPY 等）は微信支付との契約事項で、
+   * 精算時に微信支付／決済代行が確定させる。アプリは関与しない。
    */
   async getQuote(userId: string, orderNo: string) {
     const order = await this.prisma.order.findFirst({
       where: { orderNo, userId },
-      select: { totalCny: true, fxRate: true, fxQuotedAt: true, totalJpyEstimate: true },
+      select: { totalCny: true },
     })
     if (!order) throw new NotFoundException('Order not found')
 
     return {
       chargeCny: order.totalCny,
-      estimatedSettlementJpy: order.totalJpyEstimate,
-      fxRate: order.fxRate,
-      quotedAt: order.fxQuotedAt.toISOString(),
+      currency: 'CNY' as const,
       provider: this.config.get<string>('PAYMENT_PROVIDER', 'wechat_direct'),
     }
   }

@@ -24,39 +24,6 @@
     @include flex(space-between, center);
   }
 
-  &__jpy-toggle {
-    @include flex(center, center);
-    height: 26px;
-    padding: 0 $space-sm;
-    border-radius: $radius-pill;
-    border: 1px solid $color-border;
-    font-size: $font-caption;
-    color: $color-text-tertiary;
-    @include expand-tap-area;
-
-    &.is-on {
-      border-color: $color-primary;
-      background: $color-primary-bg;
-      color: $color-primary-dark;
-      font-weight: $font-weight-bold;
-    }
-
-    &--hover {
-      opacity: 0.7;
-    }
-  }
-
-  &__jpy {
-    display: block;
-    margin-top: $space-xxs;
-    font-size: $font-caption;
-    color: $color-text-secondary;
-  }
-
-  &__jpy-note {
-    color: $color-text-tertiary;
-  }
-
   &__name {
     display: block;
     margin-top: $space-xs;

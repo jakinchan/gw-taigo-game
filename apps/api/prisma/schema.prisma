@@ -322,12 +322,14 @@ model Order {
   taxCny         Int @default(0)
   totalCny       Int
 
-  // ---- 越境決済の為替スナップショット ----
-  /// 注文確定時のレート（1 CNY = fxRate JPY）。表示の一貫性のために保存する。
-  fxRate           Float
-  fxQuotedAt       DateTime
-  /// 参考の日本円換算額（円）。実際の入金額とは一致しない。
-  totalJpyEstimate Int
+  // ---- 為替のスナップショット ----
+  // 現在は人民元のみで運用しているため使っていない（常に null）。
+  // 外貨の参考表示を再開したときに、注文時のレートを固定して
+  // 「あとから履歴を開くと換算額が変わる」のを防ぐための枠。
+  // 過去データを壊さないよう列は残す。
+  fxRate           Float?
+  fxQuotedAt       DateTime?
+  totalJpyEstimate Int?
 
   couponCode String?
 
@@ -511,11 +513,13 @@ model LotteryDraw {
   @@index([userId, createdAt])
 }
 
-/// 為替レートの履歴。表示レートの根拠を後から追跡できるようにする。
+/// 為替レートの履歴。
+/// 人民元のみの運用では使わないが、外貨表示を再開したときに
+/// 「その時いくらで表示したか」を追跡できるよう定義だけ残す。
 model FxRate {
   id       String   @id @default(cuid())
   base     String   @default("CNY")
-  quote    String   @default("JPY")
+  quote    String
   rate     Float
   source   String
   quotedAt DateTime @default(now())

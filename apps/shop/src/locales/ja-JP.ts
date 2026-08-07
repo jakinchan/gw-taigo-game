@@ -18,7 +18,6 @@ const jaJP: TranslationSchema = {
     more: 'もっと見る',
     all: 'すべて',
     yuan: '元',
-    approx: '約',
     piece: '点',
   },
   tabBar: {
@@ -249,11 +248,6 @@ const jaJP: TranslationSchema = {
     balance: '保有ポイント',
     exchange: '交換する',
     empty: '交換できる商品がありません',
-  },
-  currency: {
-    cny: '人民元',
-    jpy: '日本円',
-    rateNote: '為替レートは参考値です。実際の決済額と異なる場合があります',
   },
   language: {
     switch: '言語',

@@ -5,8 +5,6 @@ import type { Product, Review } from '@/types'
 import { productApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
 import { useCartStore } from '@/store/cart'
-import { usePreferenceStore } from '@/store/preference'
-import { cnyToJpy, formatJpy, getFxRate } from '@/utils/currency'
 import { IMAGE_PRESET } from '@/utils/image'
 import { ignoreFailure } from '@/utils/platform'
 import SafeImage from '@/components/SafeImage'
@@ -33,8 +31,6 @@ export default function ProductDetail() {
 
   const { t, tx, locale } = useI18n()
   const addToCart = useCartStore((s) => s.add)
-  const showJpy = usePreferenceStore((s) => s.showJpy)
-  const toggleShowJpy = usePreferenceStore((s) => s.toggleShowJpy)
 
   const [product, setProduct] = useState<Product | null>(null)
   const [reviews, setReviews] = useState<Review[]>([])
@@ -157,25 +153,8 @@ export default function ProductDetail() {
             priceCny={product.priceCny}
             originalPriceCny={product.originalPriceCny}
             size='lg'
-            jpyPosition='none'
           />
-          <View
-            className={`detail__jpy-toggle ${showJpy ? 'is-on' : ''}`}
-            hoverClass='detail__jpy-toggle--hover'
-            onClick={toggleShowJpy}
-          >
-            <Text>JPY</Text>
-          </View>
         </View>
-
-        {showJpy && (
-          <Text className='detail__jpy'>
-            {t('common.approx')} ￥{formatJpy(cnyToJpy(product.priceCny))}
-            <Text className='detail__jpy-note'>
-              （1 CNY ≈ {getFxRate().toFixed(2)} JPY・{t('currency.rateNote')}）
-            </Text>
-          </Text>
-        )}
 
         <Text className='detail__name'>{tx(product.name)}</Text>
         <Text className='detail__subtitle'>{tx(product.subtitle)}</Text>

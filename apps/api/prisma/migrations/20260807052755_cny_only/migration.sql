@@ -1,0 +1,7 @@
+-- AlterTable
+ALTER TABLE "FxRate" ALTER COLUMN "quote" DROP DEFAULT;
+
+-- AlterTable
+ALTER TABLE "Order" ALTER COLUMN "fxRate" DROP NOT NULL,
+ALTER COLUMN "fxQuotedAt" DROP NOT NULL,
+ALTER COLUMN "totalJpyEstimate" DROP NOT NULL;

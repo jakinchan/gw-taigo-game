@@ -12,9 +12,16 @@ export interface LocalizedText {
   'ja-JP': string
 }
 
-export type Currency = 'CNY' | 'JPY'
+/**
+ * 決済通貨。
+ *
+ * 現時点では人民元のみを扱う。顧客は必ず CNY 建てで支払う。
+ * 加盟店への入金通貨（越境の場合は JPY など）は微信支付との契約事項で、
+ * アプリ側のロジックには現れない。
+ */
+export type Currency = 'CNY'
 
-/** 金額は必ず「最小通貨単位の整数」で扱う（CNY=分, JPY=円）。浮動小数は禁止。 */
+/** 金額は必ず「最小通貨単位の整数」で扱う（CNY=分）。浮動小数は禁止。 */
 export interface Money {
   /** 最小通貨単位の整数値。CNY 12.80 → 1280 */
   amount: number
@@ -233,14 +240,8 @@ export interface OrderAmounts {
   discountCny: number
   /** 越境EC 行郵税・関税等（分） */
   taxCny: number
-  /** 支払総額（分） */
+  /** 支払総額（分）。顧客が微信支付で支払う額そのもの。 */
   totalCny: number
-  /** 参考表示用の日本円換算額（決済確定額ではない） */
-  totalJpyEstimate: number
-  /** 換算に使用したレート（1 CNY = fxRate JPY） */
-  fxRate: number
-  /** レート取得時刻 */
-  fxQuotedAt: string
 }
 
 export interface Order {

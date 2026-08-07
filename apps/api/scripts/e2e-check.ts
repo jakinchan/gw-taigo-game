@@ -143,7 +143,6 @@ async function main() {
       shippingFeeCny: number
       taxCny: number
       totalCny: number
-      fxRate: number
     }
     crossBorderLimit: { allowed: boolean; reason: string | null; remainingCny: number } | null
   }>('/orders/preview', {
@@ -271,9 +270,6 @@ async function main() {
       subtotalCny: 2_580_000,
       discountCny: 0,
       totalCny: 2_580_000,
-      fxRate: 21,
-      fxQuotedAt: new Date(),
-      totalJpyEstimate: 541_800,
       declarantIdHash: stored.idCardHash,
       paidAt: new Date(),
     },

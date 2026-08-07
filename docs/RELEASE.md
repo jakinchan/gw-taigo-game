@@ -483,13 +483,12 @@ WECHAT_PAY_NOTIFY_URL=https://api.example.com/api/payment/wechat/notify
 
 ```bash
 PAYMENT_PROVIDER=wechat_direct   # または sbps
-SETTLEMENT_CURRENCY=JPY
 ```
 
-> **アプリが表示する日本円額は参考値です。**
-> 入金額と一致することは保証されません。この値を請求額や
-> 入金予定額として使わないでください。
-> 画面には常に「汇率仅供参考，以实际结算为准」を併記しています。
+> **アプリは人民元しか扱いません。**
+> 入金通貨と換算レートは微信支付との契約事項で、精算時に確定します。
+> アプリ側に設定項目はなく、画面にも外貨額は一切表示しません。
+> （表示すると請求額と誤認されるため、意図的に出していません）
 
 決済代行（SB ペイメントサービス等）を経由する場合も、小程序から見た
 フローは変わりません（`prepay_id` → `wx.requestPayment`）。
@@ -555,14 +554,11 @@ WARN [WechatPayService] WeChat Pay is not fully configured; payment endpoints wi
 | `WECHAT_MCH_PRIVATE_KEY_PATH` | `apiclient_key.pem` のパス |
 | `WECHAT_PAY_NOTIFY_URL` | 支付通知の受け口（HTTPS） |
 | `PAYMENT_PROVIDER` | `wechat_direct` または `sbps` |
-| `SETTLEMENT_CURRENCY` | 入金通貨（越境の場合） |
 
 ### 任意
 
 | 変数 | 未設定時の動作 |
 | --- | --- |
-| `FX_RATE_API_URL` | `FX_FALLBACK_RATE` を使う（表示は参考値なので実用上問題なし） |
-| `FX_FALLBACK_RATE` | 既定 `21.0` |
 | `CUSTOMS_ENABLED` | `false` なら通関申告を行わない |
 | `CUSTOMS_*` | 通関申告の設定一式 |
 | `REDIS_URL` | 未使用（将来のキャッシュ用に予約） |

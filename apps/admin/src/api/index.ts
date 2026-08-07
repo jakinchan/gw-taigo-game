@@ -27,10 +27,6 @@ export const orderApi = {
   detail: (id: string) => request<Order>(`/orders/${id}`),
 }
 
-export const fxApi = {
-  rate: () => request<{ rate: number; quotedAt: string; source: string }>('/fx/cny-jpy'),
-}
-
 export const lotteryApi = {
   board: () =>
     request<{

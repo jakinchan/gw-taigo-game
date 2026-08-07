@@ -2,8 +2,7 @@ import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { Product } from '@/types'
 import { useI18n } from '@/services/i18n'
-import { usePreferenceStore } from '@/store/preference'
-import { cnyToJpy, formatJpy, splitCny } from '@/utils/currency'
+import { splitCny } from '@/utils/currency'
 import SafeImage from '@/components/SafeImage'
 
 import './ProductCard.scss'
@@ -38,7 +37,6 @@ const UNIT_LABEL: Record<NonNullable<Product['priceUnit']>, string> = {
  */
 export default function ProductCard({ product, variant = 'grid3', onClick }: Props) {
   const { t, tx } = useI18n()
-  const showJpy = usePreferenceStore((s) => s.showJpy)
 
   const soldOut = product.stock <= 0 && product.stockLabel !== 'producing'
   const { integer, decimal } = splitCny(product.priceCny)
@@ -93,11 +91,6 @@ export default function ProductCard({ product, variant = 'grid3', onClick }: Pro
               <Text className='pcard__price-unit'>{unit}</Text>
             </View>
 
-            {showJpy && (
-              <Text className='pcard__jpy'>
-                {t('common.approx')} ￥{formatJpy(cnyToJpy(product.priceCny))}
-              </Text>
-            )}
 
             {product.marketPriceRange && (
               <>

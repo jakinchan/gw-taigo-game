@@ -3,7 +3,7 @@ import type { OrderStatus } from '@hfs/shared'
 import { orderApi } from '@/api'
 import { adminApi } from '@/api/admin'
 import { useAsync } from '@/hooks/useAsync'
-import { formatCny, formatDateTime, formatJpy, tx } from '@/utils/format'
+import { formatCny, formatDateTime, tx } from '@/utils/format'
 
 const STATUS_TABS: { value: OrderStatus | ''; label: string }[] = [
   { value: '', label: 'すべて' },
@@ -85,7 +85,6 @@ export default function Orders() {
                 <th className='num'>送料</th>
                 <th className='num'>税</th>
                 <th className='num'>合計</th>
-                <th className='num'>参考(JPY)</th>
                 <th>注文日時</th>
                 <th>操作</th>
               </tr>
@@ -108,7 +107,6 @@ export default function Orders() {
                   <td className='num'>
                     <strong>{formatCny(order.amounts.totalCny)}</strong>
                   </td>
-                  <td className='num muted'>{formatJpy(order.amounts.totalJpyEstimate)}</td>
                   <td className='muted'>{formatDateTime(order.createdAt)}</td>
                   <td>
                     {order.status === 'pending_shipment' ? (

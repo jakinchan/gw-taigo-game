@@ -243,21 +243,6 @@
     color: $color-primary;
   }
 
-  &__total-jpy {
-    display: block;
-    margin-top: 2px;
-    font-size: $font-caption;
-    color: $color-text-tertiary;
-  }
-
-  &__fx-note {
-    display: block;
-    margin-top: $space-xs;
-    font-size: 10px;
-    line-height: 1.5;
-    color: $color-text-tertiary;
-  }
-
   // ---------- 固定フッター ----------
   &__footer-space {
     height: 72px;
@@ -293,12 +278,6 @@
     font-size: $font-body + 2px;
     font-weight: $font-weight-heavy;
     color: $color-primary;
-  }
-
-  &__footer-jpy {
-    display: block;
-    font-size: 10px;
-    color: $color-text-tertiary;
   }
 
   &__submit {

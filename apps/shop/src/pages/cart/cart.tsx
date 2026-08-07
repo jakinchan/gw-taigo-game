@@ -10,8 +10,7 @@ import {
   selectSubtotalCny,
   useCartStore,
 } from '@/store/cart'
-import { usePreferenceStore } from '@/store/preference'
-import { cnyToJpy, formatCny, formatJpy } from '@/utils/currency'
+import { formatCny } from '@/utils/currency'
 import { toUserMessage } from '@/utils/request'
 import SafeImage from '@/components/SafeImage'
 import QuantityStepper from '@/components/QuantityStepper'
@@ -40,8 +39,6 @@ export default function Cart() {
   const subtotal = useCartStore(selectSubtotalCny)
   const selected = useCartStore(selectSelectedItems)
   const allSelected = useCartStore(selectAllSelected)
-
-  const showJpy = usePreferenceStore((s) => s.showJpy)
 
   const [couponCode, setCouponCode] = useState('')
   const [coupon, setCoupon] = useState<AppliedCoupon | null>(null)
@@ -137,11 +134,6 @@ export default function Cart() {
               <View className='cart__row'>
                 <View className='cart__price'>
                   <Text className='cart__price-cny'>¥{formatCny(item.priceCny)}</Text>
-                  {showJpy && (
-                    <Text className='cart__price-jpy'>
-                      {t('common.approx')} ￥{formatJpy(cnyToJpy(item.priceCny))}
-                    </Text>
-                  )}
                 </View>
 
                 <QuantityStepper
@@ -222,11 +214,6 @@ export default function Cart() {
         <View className='cart__footer-total'>
           <Text className='cart__footer-total-label'>{t('cart.total')}</Text>
           <Text className='cart__footer-total-value'>¥{formatCny(total)}</Text>
-          {showJpy && (
-            <Text className='cart__footer-total-jpy'>
-              {t('common.approx')} ￥{formatJpy(cnyToJpy(total))}
-            </Text>
-          )}
         </View>
 
         <View

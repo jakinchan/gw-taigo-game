@@ -78,12 +78,6 @@
     color: $color-primary;
   }
 
-  &__price-jpy {
-    display: block;
-    font-size: 10px;
-    color: $color-text-tertiary;
-  }
-
   &__stock-warn {
     display: block;
     margin-top: $space-xxs;
@@ -219,12 +213,6 @@
     font-size: $font-body;
     font-weight: $font-weight-heavy;
     color: $color-primary;
-  }
-
-  &__footer-total-jpy {
-    display: block;
-    font-size: 10px;
-    color: $color-text-tertiary;
   }
 
   &__footer-btn {

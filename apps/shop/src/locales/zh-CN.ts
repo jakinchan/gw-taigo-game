@@ -18,7 +18,6 @@ const zhCN = {
     more: '更多',
     all: '全部',
     yuan: '元',
-    approx: '约',
     piece: '件',
   },
   tabBar: {
@@ -249,11 +248,6 @@ const zhCN = {
     balance: '我的积分',
     exchange: '兑换',
     empty: '暂无可兑换商品',
-  },
-  currency: {
-    cny: '人民币',
-    jpy: '日元',
-    rateNote: '汇率仅供参考，以实际结算为准',
   },
   language: {
     switch: '语言',

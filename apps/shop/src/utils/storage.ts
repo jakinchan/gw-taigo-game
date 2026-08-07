@@ -10,10 +10,6 @@ export interface StorageSchema {
   token: string
   userProfile: UserProfile
   cart: CartItem[]
-  /** 為替レートのキャッシュ */
-  fxRate: { rate: number; quotedAt: string }
-  /** JPY 換算表示のオン/オフ */
-  showJpy: boolean
   /** 検索履歴（最大 10 件） */
   searchHistory: string[]
 }

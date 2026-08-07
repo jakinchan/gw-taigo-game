@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import { View, Text, Switch } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import type { Coupon } from '@/types'
-import { userApi, fxApi } from '@/services/api'
+import { userApi } from '@/services/api'
 import { useI18n } from '@/services/i18n'
-import { usePreferenceStore } from '@/store/preference'
 import { useUserStore } from '@/store/user'
-import { formatCny, getFxQuotedAt, getFxRate, setFxRate } from '@/utils/currency'
+import { formatCny } from '@/utils/currency'
 import { clearCache } from '@/utils/storage'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 
@@ -15,8 +14,6 @@ import './settings.scss'
 /** 设置（設定）＋クーポン一覧。`?tab=coupons` でクーポンを開いた状態にする。 */
 export default function Settings() {
   const { t, tx } = useI18n()
-  const showJpy = usePreferenceStore((s) => s.showJpy)
-  const setShowJpy = usePreferenceStore((s) => s.setShowJpy)
   const isLoggedIn = useUserStore((s) => s.isLoggedIn)
   const signOut = useUserStore((s) => s.signOut)
 
@@ -39,16 +36,6 @@ export default function Settings() {
       .catch(() => {})
   }, [])
 
-  const refreshFxRate = async () => {
-    try {
-      const { rate, quotedAt } = await fxApi.rate()
-      setFxRate(rate, quotedAt)
-      Taro.showToast({ title: `1 CNY ≈ ${rate.toFixed(2)} JPY`, icon: 'none' })
-    } catch {
-      Taro.showToast({ title: t('common.networkError'), icon: 'none' })
-    }
-  }
-
   return (
     <View className='settings'>
       {/* ---- 言語 ---- */}
@@ -57,33 +44,6 @@ export default function Settings() {
         <View className='settings__lang'>
           {/* 設定画面では選択肢を並べたセグメント表示にする */}
           <LanguageSwitcher variant='segmented' />
-        </View>
-      </View>
-
-      {/* ---- 通貨表示 ---- */}
-      <View className='settings__card'>
-        <Text className='settings__card-title'>{t('currency.jpy')}</Text>
-
-        <View className='settings__row'>
-          <View className='settings__row-body'>
-            <Text className='settings__row-label'>
-              {t('currency.cny')} / {t('currency.jpy')}
-            </Text>
-            <Text className='settings__row-desc'>{t('currency.rateNote')}</Text>
-          </View>
-          <Switch checked={showJpy} color='#4caf50' onChange={(e) => setShowJpy(e.detail.value)} />
-        </View>
-
-        <View className='settings__row' onClick={refreshFxRate}>
-          <View className='settings__row-body'>
-            <Text className='settings__row-label'>
-              1 CNY ≈ {getFxRate().toFixed(2)} JPY
-            </Text>
-            <Text className='settings__row-desc'>
-              {getFxQuotedAt() ? new Date(getFxQuotedAt()).toLocaleString() : '—'}
-            </Text>
-          </View>
-          <Text className='settings__row-action'>{t('common.retry')}</Text>
         </View>
       </View>
 
